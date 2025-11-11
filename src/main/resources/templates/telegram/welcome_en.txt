@@ -1,0 +1,18 @@
+🎉 Welcome to {appName}!
+
+Hi {firstName},
+
+Thank you for joining us! Your account has been successfully created and you're all set to get started.
+
+🚀 Quick Start:
+- Explore your dashboard: {actionUrl}
+- Customize your profile
+- Start using our features
+
+Need help? Our support team is here for you at {supportEmail}
+
+Best regards,
+The {appName} Team
+
+---
+© {year} {appName}. All rights reserved.

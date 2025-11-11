@@ -1,0 +1,9 @@
+🌅 Good morning, {firstName}!
+
+Here's your summary for today:
+
+📅 {taskCount} tasks pending
+📬 {messageCount} unread messages
+⏰ Next event: {nextEvent}
+
+Have a productive day! 💪

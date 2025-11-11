@@ -1,0 +1,101 @@
+sms:
+  send-failed:
+    title: "Неуспешно изпращане на SMS"
+    message: "Неуспешно изпращане на SMS до {0} чрез {1}: {2}"
+  provider-error:
+    title: "Грешка в SMS доставчик"
+    message: "SMS доставчик {0} срещна грешка: {1}"
+  provider-not-configured:
+    title: "SMS доставчик не е конфигуриран"
+    message: "{0} не е конфигуриран. Моля, задайте {1}"
+
+email:
+  send-failed:
+    title: "Неуспешно изпращане на имейл"
+    message: "Неуспешно изпращане на имейл до {0}: {1}"
+
+telegram:
+  send-failed:
+    title: "Неуспешно изпращане на Telegram съобщение"
+    message: "Неуспешно изпращане на Telegram съобщение до {0}: {1}"
+
+viber:
+  send-failed:
+    title: "Неуспешно изпращане на Viber съобщение"
+    message: "Неуспешно изпращане на Viber съобщение до {0}: {1}"
+
+notification:
+  send-failed:
+    title: "Неуспешно изпращане на известие"
+    message: "Неуспешно изпращане на известие чрез {0}: {1}"
+
+template:
+  not-found:
+    title: "Шаблонът не е намерен"
+    message: "Шаблон {0} не е намерен за език {1}"
+  render-error:
+    title: "Грешка при рендериране на шаблон"
+    message: "Неуспешно рендериране на шаблон {0}: {1}"
+
+error:
+  rate-limit:
+    exceeded: "Твърде много %s известия до %s. Опитайте отново след %d секунди."
+
+  notification:
+    email:
+      send-failed: "Неуспешно изпращане на имейл до %s: %s"
+      invalid-recipient: "Невалиден получател на имейл: %s"
+      configuration-error: "Имейл услугата не е правилно конфигурирана"
+
+    sms:
+      send-failed: "Неуспешно изпращане на SMS до %s чрез %s: %s"
+      provider-error: "SMS доставчик %s срещна грешка: %s"
+      invalid-phone: "Невалиден телефонен номер: %s"
+      configuration-error: "SMS доставчик %s не е правилно конфигуриран"
+
+    telegram:
+      send-failed: "Неуспешно изпращане на Telegram съобщение до chat ID %s: %s"
+      invalid-chat-id: "Невалиден Telegram chat ID: %s"
+      bot-error: "Грешка в Telegram бота: %s"
+      configuration-error: "Telegram ботът не е правилно конфигуриран"
+      invalid-parameters: "Невалидни параметри на съобщението: %s"
+      invalid-recipient: "Невалиден Telegram получател: %s"
+      rate-limited: "Превишен лимит за Telegram. Опитайте отново след %d секунди"
+
+    viber:
+      send-failed: "Неуспешно изпращане на Viber съобщение до %s: %s"
+      invalid-recipient: "Невалиден Viber получател: %s"
+      configuration-error: "Viber услугата не е правилно конфигурирана"
+
+  template:
+    not-found: "Шаблон '%s' не е намерен за език '%s'"
+    render-error: "Неуспешно рендериране на шаблон '%s': %s"
+    scan-error: "Неуспешно сканиране на шаблони: %s"
+    invalid-path: "Невалиден път до шаблон: %s"
+
+  validation:
+    invalid-request: "Невалидна заявка за известяване: %s"
+    missing-field: "Липсва задължително поле: %s"
+    invalid-channel: "Невалиден канал за известяване: %s"
+    invalid-locale: "Невалиден език: %s. Поддържани езици: %s"
+    channel-not-supported: "Канал '%s' не се поддържа. Поддържани канали: %s"
+
+  title:
+    email-failed: "Неуспешно изпращане на имейл"
+    sms-failed: "Неуспешно изпращане на SMS"
+    telegram-failed: "Неуспешно изпращане на Telegram"
+    viber-failed: "Неуспешно изпращане на Viber"
+    template-not-found: "Шаблонът не е намерен"
+    template-error: "Грешка при обработка на шаблон"
+    validation-failed: "Неуспешна валидация"
+    invalid-data: "Невалидни данни"
+    messaging-failed: "Неуспешно съобщение"
+    configuration-error: "Грешка в конфигурацията"
+    rate-limit-exceeded: "Превишен лимит"
+
+success:
+  notification:
+    sent: "Известието е изпратено успешно"
+    queued: "Известието е добавено в опашка за обработка"
+  template:
+    validated: "Шаблонът е валидиран успешно"
