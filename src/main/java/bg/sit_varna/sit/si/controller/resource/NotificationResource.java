@@ -1,6 +1,5 @@
 package bg.sit_varna.sit.si.controller.resource;
 
-import bg.sit_varna.sit.si.config.app.ApplicationConfig;
 import bg.sit_varna.sit.si.config.app.LocaleResolver;
 import bg.sit_varna.sit.si.constant.NotificationStatus;
 import bg.sit_varna.sit.si.controller.api.NotificationApi;
@@ -28,11 +27,10 @@ public class NotificationResource extends BaseResource implements NotificationAp
     private NotificationMapper notificationMapper;
 
     @Inject
-    public NotificationResource(ApplicationConfig applicationConfig,
-                                LocaleResolver localeResolver,
+    public NotificationResource(LocaleResolver localeResolver,
                                 NotificationService notificationService,
                                 NotificationMapper notificationMapper) {
-        super(applicationConfig, localeResolver);
+        super(localeResolver);
         this.notificationService = notificationService;
         this.notificationMapper = notificationMapper;
     }

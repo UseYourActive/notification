@@ -1,6 +1,5 @@
 package bg.sit_varna.sit.si.controller.resource;
 
-import bg.sit_varna.sit.si.config.app.ApplicationConfig;
 import bg.sit_varna.sit.si.config.app.LocaleResolver;
 import bg.sit_varna.sit.si.constant.NotificationChannel;
 import bg.sit_varna.sit.si.controller.api.ChannelApi;
@@ -20,9 +19,8 @@ public class ChannelResource extends BaseResource implements ChannelApi {
     private static final Logger LOG = Logger.getLogger(ChannelResource.class);
 
     @Inject
-    public ChannelResource(ApplicationConfig applicationConfig,
-                           LocaleResolver localeResolver) {
-        super(applicationConfig, localeResolver);
+    public ChannelResource(LocaleResolver localeResolver) {
+        super(localeResolver);
     }
 
     protected ChannelResource() {}

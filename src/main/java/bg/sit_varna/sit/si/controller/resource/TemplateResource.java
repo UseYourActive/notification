@@ -1,6 +1,5 @@
 package bg.sit_varna.sit.si.controller.resource;
 
-import bg.sit_varna.sit.si.config.app.ApplicationConfig;
 import bg.sit_varna.sit.si.config.app.LocaleResolver;
 import bg.sit_varna.sit.si.controller.api.TemplateApi;
 import bg.sit_varna.sit.si.controller.base.BaseResource;
@@ -28,10 +27,9 @@ public class TemplateResource extends BaseResource implements TemplateApi {
     private TemplateService templateService;
 
     @Inject
-    public TemplateResource(ApplicationConfig applicationConfig,
-                            LocaleResolver localeResolver,
+    public TemplateResource(LocaleResolver localeResolver,
                             TemplateService templateService) {
-        super(applicationConfig, localeResolver);
+        super(localeResolver);
         this.templateService = templateService;
     }
 
