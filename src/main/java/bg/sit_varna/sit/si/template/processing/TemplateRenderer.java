@@ -9,6 +9,7 @@ import io.quarkus.qute.Template;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
+import java.util.Locale;
 import java.util.Map;
 
 @ApplicationScoped
@@ -32,8 +33,9 @@ public class TemplateRenderer {
         if (template == null) {
             throw new TemplateNotFoundException(
                     NotificationErrorCode.TEMPLATE_NOT_FOUND,
-                    messageService.getTitle(NotificationErrorCode.TEMPLATE_NOT_FOUND),
+                    messageService.getTitle(NotificationErrorCode.TEMPLATE_NOT_FOUND, Locale.of(locale)),
                     messageService.getMessage(NotificationErrorCode.TEMPLATE_NOT_FOUND,
+                            locale,
                             templateName,
                             locale),
                     templateName,
@@ -46,8 +48,9 @@ public class TemplateRenderer {
         } catch (Exception e) {
             throw new TemplateRenderException(
                     NotificationErrorCode.TEMPLATE_RENDER_ERROR,
-                    messageService.getTitle(NotificationErrorCode.TEMPLATE_RENDER_ERROR),
+                    messageService.getTitle(NotificationErrorCode.TEMPLATE_RENDER_ERROR, Locale.of(locale)),
                     messageService.getMessage(NotificationErrorCode.TEMPLATE_RENDER_ERROR,
+                            locale,
                             templateName,
                             e.getMessage()),
                     templateName,
