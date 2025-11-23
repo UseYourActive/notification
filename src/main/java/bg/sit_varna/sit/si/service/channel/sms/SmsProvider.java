@@ -1,8 +1,7 @@
 package bg.sit_varna.sit.si.service.channel.sms;
 
 public enum SmsProvider {
-    TWILIO("twilio"),
-    VONAGE("vonage");
+    TWILIO("twilio");
 
     private final String provider;
 
