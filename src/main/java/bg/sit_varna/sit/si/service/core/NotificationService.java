@@ -1,12 +1,17 @@
 package bg.sit_varna.sit.si.service.core;
 
 import bg.sit_varna.sit.si.constant.NotificationErrorCode;
+import bg.sit_varna.sit.si.constant.NotificationStatus;
 import bg.sit_varna.sit.si.dto.model.Notification;
+import bg.sit_varna.sit.si.entity.NotificationRecord;
 import bg.sit_varna.sit.si.exception.exceptions.RateLimitException;
+import bg.sit_varna.sit.si.repository.NotificationRepository;
 import bg.sit_varna.sit.si.service.redis.DeduplicationService;
 import bg.sit_varna.sit.si.service.redis.RateLimitService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
 import org.jboss.logging.Logger;
@@ -28,9 +33,16 @@ public class NotificationService {
     MessageService messageService;
 
     @Inject
+    ObjectMapper objectMapper;
+
+    @Inject
+    NotificationRepository notificationRepository;
+
+    @Inject
     @Channel("notification-queue")
     Emitter<Notification> notificationEmitter;
 
+    @Transactional
     public void dispatchNotification(Notification request) {
         Locale locale = Locale.forLanguageTag(request.getLocale());
 
@@ -51,6 +63,22 @@ public class NotificationService {
             LOG.warnf("Skipping duplicate notification for %s", request.getRecipient());
             return; // We treat this as "success" (idempotency) but don't enqueue
         }
+
+        NotificationRecord record = new NotificationRecord();
+        record.id = request.getId();
+        record.recipient = request.getRecipient();
+        record.channel = request.getChannel();
+        record.templateName = request.getTemplateName();
+        record.status = NotificationStatus.QUEUED;
+
+        try {
+            record.payload = objectMapper.writeValueAsString(request.getData());
+        } catch (Exception e) {
+            record.payload = "{}";
+            LOG.warn("Failed to serialize payload", e);
+        }
+
+        notificationRepository.persist(record);
 
         // 3. Async Dispatch: Push to Queue
         LOG.debugf("Enqueuing notification for: %s", request.getRecipient());
