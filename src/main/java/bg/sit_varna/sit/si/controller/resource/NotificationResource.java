@@ -49,19 +49,23 @@ public class NotificationResource extends BaseResource implements NotificationAp
     @Override
     public Response sendNotification(@Valid SendNotificationRequest request) {
         Locale resolvedLocale = resolveLocale();
-        LOG.debugf("Resolved locale from Accept-Language header: %s", resolvedLocale.toLanguageTag());
+
+        String notificationId = UUID.randomUUID().toString();
+
         Notification notification = notificationMapper.toNotification(request, resolvedLocale);
 
-        notificationService.sendNotification(notification);
+        // notification.setId(notificationId);
+
+        notificationService.dispatchNotification(notification);
 
         SendNotificationResponse response = SendNotificationResponse.of(
-                UUID.randomUUID().toString(),
-                NotificationStatus.SENT,
-                "Notification sent successfully",
+                notificationId,
+                NotificationStatus.QUEUED,
+                "Notification queued for delivery",
                 request.recipient(),
                 request.channel().toString()
         );
 
-        return Response.ok(response).build();
+        return Response.status(Response.Status.ACCEPTED).entity(response).build();
     }
 }
