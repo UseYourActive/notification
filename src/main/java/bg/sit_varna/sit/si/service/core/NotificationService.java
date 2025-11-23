@@ -34,8 +34,7 @@ public class NotificationService {
     public void dispatchNotification(Notification request) {
         Locale locale = Locale.forLanguageTag(request.getLocale());
 
-        // 1. Fast Check: Rate Limiting
-        // (We keep this synchronous so we can reject the request immediately 429)
+        // Rate Limiting
         if (!rateLimitService.isAllowed(request.getRecipient(), request.getChannel())) {
             long resetTime = rateLimitService.getResetTime(request.getRecipient(), request.getChannel());
             throw new RateLimitException(
@@ -46,8 +45,7 @@ public class NotificationService {
             );
         }
 
-        // 2. Fast Check: Deduplication
-        // We check based on raw template name or message before rendering to save processing
+        // Deduplication
         String contentKey = request.usesTemplate() ? request.getTemplateName() : request.getMessage();
         if (deduplicationService.isDuplicate(request.getRecipient(), request.getChannel(), contentKey)) {
             LOG.warnf("Skipping duplicate notification for %s", request.getRecipient());

@@ -13,13 +13,15 @@ import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.faulttolerance.CircuitBreaker;
+import org.eclipse.microprofile.faulttolerance.Retry;
+import org.eclipse.microprofile.faulttolerance.Timeout;
 import org.jboss.logging.Logger;
 
-import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @ApplicationScoped
 public class TelegramApiSender {
@@ -38,9 +40,11 @@ public class TelegramApiSender {
         return telegramConfig.isConfigured();
     }
 
+    @Retry(maxRetries = 3, delay = 2000, delayUnit = ChronoUnit.MILLIS)
+    @Timeout(value = 10, unit = ChronoUnit.SECONDS)
+    @CircuitBreaker(requestVolumeThreshold = 4, failureRatio = 0.5, delay = 30000)
     public Integer sendMessage(String chatId, String message, Map<String, Object> options, Locale locale) {
         LOG.infof("Sending Telegram message to chat ID: %s", chatId);
-
         validateChatId(chatId);
         validateMessageLength(message);
 
@@ -55,17 +59,20 @@ public class TelegramApiSender {
         } catch (TelegramSendException e) {
             throw e;
         } catch (Exception e) {
-            LOG.errorf(e, "Unexpected error sending Telegram message to chat ID: %s", chatId);
+            LOG.errorf(e, "Error sending Telegram message to %s", chatId);
             throw new TelegramSendException(
                     NotificationErrorCode.TELEGRAM_BOT_ERROR,
                     messageService.getTitle(NotificationErrorCode.TELEGRAM_BOT_ERROR, locale),
-                    messageService.getMessage(NotificationErrorCode.TELEGRAM_BOT_ERROR, locale, e.getMessage()),
+                    "Failed after retries: " + e.getMessage(),
                     chatId,
                     e
             );
         }
     }
 
+    @Retry(maxRetries = 3, delay = 2000, delayUnit = ChronoUnit.MILLIS)
+    @Timeout(value = 10, unit = ChronoUnit.SECONDS)
+    @CircuitBreaker(requestVolumeThreshold = 4, failureRatio = 0.5, delay = 30000)
     public Integer sendPhoto(String chatId, String photo, String caption, Map<String, Object> options, Locale locale) {
         LOG.infof("Sending photo to chat ID: %s", chatId);
 
@@ -110,6 +117,9 @@ public class TelegramApiSender {
         }
     }
 
+    @Retry(maxRetries = 3, delay = 2000, delayUnit = ChronoUnit.MILLIS)
+    @Timeout(value = 10, unit = ChronoUnit.SECONDS)
+    @CircuitBreaker(requestVolumeThreshold = 4, failureRatio = 0.5, delay = 30000)
     public Integer sendDocument(String chatId, String document, String caption, Map<String, Object> options, Locale locale) {
         LOG.infof("Sending document to chat ID: %s", chatId);
 
@@ -146,6 +156,9 @@ public class TelegramApiSender {
         }
     }
 
+    @Retry(maxRetries = 3, delay = 2000, delayUnit = ChronoUnit.MILLIS)
+    @Timeout(value = 10, unit = ChronoUnit.SECONDS)
+    @CircuitBreaker(requestVolumeThreshold = 4, failureRatio = 0.5, delay = 30000)
     public boolean editMessageText(String chatId, Integer messageId, String newText, Map<String, Object> options, Locale locale) {
         LOG.infof("Editing message %d in chat %s", messageId, chatId);
 
@@ -178,6 +191,9 @@ public class TelegramApiSender {
         }
     }
 
+    @Retry(maxRetries = 3, delay = 2000, delayUnit = ChronoUnit.MILLIS)
+    @Timeout(value = 10, unit = ChronoUnit.SECONDS)
+    @CircuitBreaker(requestVolumeThreshold = 4, failureRatio = 0.5, delay = 30000)
     public boolean deleteMessage(String chatId, Integer messageId, Locale locale) {
         LOG.infof("Deleting message %d from chat %s", messageId, chatId);
 
@@ -289,48 +305,13 @@ public class TelegramApiSender {
     private JsonNode executeApiCall(String method, Map<String, Object> requestBody) throws Exception {
         String url = TELEGRAM_API_BASE + telegramConfig.botToken() + "/" + method;
 
-        int attempts = 0;
-        int maxAttempts = telegramConfig.retry().enabled()
-                ? telegramConfig.retry().maxAttempts()
-                : 1;
+        try (Client client = createHttpClient()) {
+            Response response = client.target(url)
+                    .request(MediaType.APPLICATION_JSON)
+                    .post(Entity.json(requestBody != null ? requestBody : new HashMap<>()));
 
-        Exception lastException = null;
-
-        while (attempts < maxAttempts) {
-            attempts++;
-
-            try (Client client = createHttpClient()) {
-                Response response = client.target(url)
-                        .request(MediaType.APPLICATION_JSON)
-                        .post(Entity.json(requestBody != null ? requestBody : new HashMap<>()));
-
-                return handleApiResponse(response, method);
-
-            } catch (TelegramSendException e) {
-                lastException = e;
-
-                if (shouldRetry(e, attempts, maxAttempts)) {
-                    Duration backoff = calculateBackoff(attempts);
-                    LOG.warnf("Telegram API call failed (attempt %d/%d). Retrying in %s...",
-                            attempts, maxAttempts, backoff);
-                    Thread.sleep(backoff.toMillis());
-                } else {
-                    throw e;
-                }
-            } catch (Exception e) {
-                lastException = e;
-                LOG.errorf(e, "Unexpected error during Telegram API call (attempt %d/%d)", attempts, maxAttempts);
-
-                if (attempts >= maxAttempts) {
-                    throw e;
-                }
-
-                Duration backoff = calculateBackoff(attempts);
-                Thread.sleep(backoff.toMillis());
-            }
+            return handleApiResponse(response, method);
         }
-
-        throw lastException != null ? lastException : new Exception("All retry attempts failed");
     }
 
     private JsonNode handleApiResponse(Response response, String method) throws Exception {
@@ -359,20 +340,7 @@ public class TelegramApiSender {
     }
 
     private Client createHttpClient() {
-        return ClientBuilder.newBuilder()
-                .connectTimeout(telegramConfig.timeout().connect().toMillis(), TimeUnit.MILLISECONDS)
-                .readTimeout(telegramConfig.timeout().read().toMillis(), TimeUnit.MILLISECONDS)
-                .build();
-    }
-
-    private boolean shouldRetry(TelegramSendException e, int attempts, int maxAttempts) {
-        return attempts < maxAttempts && telegramConfig.retry().enabled();
-    }
-
-    private Duration calculateBackoff(int attempt) {
-        Duration baseBackoff = telegramConfig.retry().backoff();
-        long multiplier = (long) Math.pow(2, attempt - 1);
-        return baseBackoff.multipliedBy(multiplier);
+        return ClientBuilder.newBuilder().build();
     }
 
     private NotificationErrorCode determineErrorCode(int telegramErrorCode) {

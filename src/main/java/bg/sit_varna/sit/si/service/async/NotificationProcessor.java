@@ -6,10 +6,13 @@ import bg.sit_varna.sit.si.dto.model.Notification;
 import bg.sit_varna.sit.si.service.channel.strategies.ChannelStrategy;
 import bg.sit_varna.sit.si.service.channel.strategies.ChannelStrategyFactory;
 import bg.sit_varna.sit.si.service.redis.MetricsService;
+import bg.sit_varna.sit.si.service.redis.RedisRetryService;
 import bg.sit_varna.sit.si.template.core.TemplateService;
 import io.smallrye.reactive.messaging.annotations.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.eclipse.microprofile.faulttolerance.Fallback;
+import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 import org.jboss.logging.Logger;
 
@@ -19,12 +22,15 @@ public class NotificationProcessor {
     private static final Logger LOG = Logger.getLogger(NotificationProcessor.class);
 
     @Inject ApplicationConfig applicationConfig;
+    @Inject RedisRetryService redisRetryService;
     @Inject TemplateService templateService;
     @Inject MetricsService metricsService;
     @Inject ChannelStrategyFactory channelStrategyFactory;
 
     @Incoming("notification-queue")
     @Blocking
+    @Retry // Layer 1: Fast in-memory retry
+    @Fallback(fallbackMethod = "fallbackToRedis") // Layer 2: If Layer 1 fails, goes here
     public void processNotification(Notification notification) {
         LOG.infof("Processing async notification for: %s via %s",
                 notification.getRecipient(), notification.getChannel());
@@ -58,5 +64,13 @@ public class NotificationProcessor {
             );
         }
         return request.getMessage();
+    }
+
+    // This runs only if the @Retry loop fails by the configured amounts.
+    public void fallbackToRedis(Notification notification) {
+        LOG.warnf("All immediate retries failed for %s. Moving to Redis Cold Queue.", notification.getRecipient());
+
+        // Schedule for 5 minutes later (Cold Retry)
+        redisRetryService.scheduleRetry(notification, 300);
     }
 }
