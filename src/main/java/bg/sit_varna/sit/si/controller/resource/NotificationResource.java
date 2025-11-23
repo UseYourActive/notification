@@ -54,12 +54,12 @@ public class NotificationResource extends BaseResource implements NotificationAp
 
         Notification notification = notificationMapper.toNotification(request, resolvedLocale);
 
-        // notification.setId(notificationId);
+        notification.setId(notificationId);
 
         notificationService.dispatchNotification(notification);
 
         SendNotificationResponse response = SendNotificationResponse.of(
-                notificationId,
+                notification.getId(),
                 NotificationStatus.QUEUED,
                 "Notification queued for delivery",
                 request.recipient(),

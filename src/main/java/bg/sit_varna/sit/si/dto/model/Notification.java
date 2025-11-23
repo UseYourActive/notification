@@ -12,6 +12,8 @@ import java.util.Map;
 
 @ValidNotificationRequest
 public final class Notification {
+    @JsonIgnore
+    private String id;
 
     @JsonProperty("recipient")
     private String recipient;
@@ -94,6 +96,10 @@ public final class Notification {
         return processedContent;
     }
 
+    public String getId() {
+        return id;
+    }
+
     public void setRecipient(String recipient) {
         this.recipient = recipient;
     }
@@ -126,6 +132,10 @@ public final class Notification {
         this.processedContent = processedContent;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public boolean usesTemplate() {
         return templateName != null && !templateName.isBlank();
     }
@@ -135,6 +145,7 @@ public final class Notification {
     }
 
     public static class Builder {
+        private String id;
         private String recipient;
         private NotificationChannel channel;
         private String subject;
@@ -185,7 +196,7 @@ public final class Notification {
         }
 
         public Notification build() {
-            return new Notification(
+            Notification notification = new Notification(
                     recipient,
                     channel,
                     subject,
@@ -195,6 +206,9 @@ public final class Notification {
                     message,
                     processedContent
             );
+
+            notification.setId(id);
+            return notification;
         }
     }
 }

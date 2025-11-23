@@ -32,8 +32,8 @@ public class NotificationProcessor {
     @Retry // Layer 1: Fast in-memory retry
     @Fallback(fallbackMethod = "fallbackToRedis") // Layer 2: If Layer 1 fails, goes here
     public void processNotification(Notification notification) {
-        LOG.infof("Processing async notification for: %s via %s",
-                notification.getRecipient(), notification.getChannel());
+        LOG.infof("Processing async notification [%s] for: %s via %s",
+                notification.getId(), notification.getRecipient(), notification.getChannel());
 
         try {
             // Render Template
@@ -50,7 +50,8 @@ public class NotificationProcessor {
             LOG.infof("Async processing completed for: %s", notification.getRecipient());
 
         } catch (Exception e) {
-            LOG.errorf(e, "Failed to process notification for %s", notification.getRecipient());
+            LOG.errorf(e, "Failed to process notification [%s] for %s",
+                    notification.getId(), notification.getRecipient());
             metricsService.recordNotification(notification.getChannel(), NotificationStatus.FAILED);
         }
     }
