@@ -8,7 +8,7 @@ import org.jboss.logging.Logger;
 
 import java.util.Locale;
 
-public abstract class   BaseResource {
+public abstract class BaseResource {
 
     protected LocaleResolver localeResolver;
 

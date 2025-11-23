@@ -18,7 +18,7 @@ import java.util.Base64;
 import java.util.Locale;
 
 @ApplicationScoped
-public class TwilioSmsSender {
+public final class TwilioSmsSender implements SmsSender {
 
     private static final Logger LOG = Logger.getLogger(TwilioSmsSender.class);
     private static final String TWILIO_API_URL_TEMPLATE = "https://api.twilio.com/2010-04-01/Accounts/%s/Messages.json";
@@ -75,6 +75,11 @@ public class TwilioSmsSender {
                     e
             );
         }
+    }
+
+    @Override
+    public String getProviderName() {
+        return SmsProvider.TWILIO.getProvider();
     }
 
     private String buildAuthorizationHeader() {

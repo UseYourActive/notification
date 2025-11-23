@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Locale;
 
 @ApplicationScoped
-public class SendGridEmailSender {
+public class SendGridEmailSender implements EmailSender {
 
     private static final Logger LOG = Logger.getLogger(SendGridEmailSender.class);
 
@@ -123,6 +123,11 @@ public class SendGridEmailSender {
                     e
             );
         }
+    }
+
+    @Override
+    public String getProviderName() {
+        return EmailProvider.SENDGRID.getProvider();
     }
 
     private void handleResponse(Response response, String recipient, Locale locale) {
