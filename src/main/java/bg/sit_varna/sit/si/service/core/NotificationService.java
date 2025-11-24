@@ -64,24 +64,28 @@ public class NotificationService {
             return; // We treat this as "success" (idempotency) but don't enqueue
         }
 
-        NotificationRecord record = new NotificationRecord();
-        record.id = request.getId();
-        record.recipient = request.getRecipient();
-        record.channel = request.getChannel();
-        record.templateName = request.getTemplateName();
-        record.status = NotificationStatus.QUEUED;
-
-        try {
-            record.payload = objectMapper.writeValueAsString(request.getData());
-        } catch (Exception e) {
-            record.payload = "{}";
-            LOG.warn("Failed to serialize payload", e);
-        }
-
-        notificationRepository.persist(record);
+        createNotificationRecord(request);
 
         // 3. Async Dispatch: Push to Queue
         LOG.debugf("Enqueuing notification for: %s", request.getRecipient());
         notificationEmitter.send(request);
+    }
+
+    private void createNotificationRecord(Notification request) {
+        NotificationRecord record = new NotificationRecord();
+        record.setId(request.getId());
+        record.setRecipient(request.getRecipient());
+        record.setChannel(request.getChannel());
+        record.setTemplateName(request.getTemplateName());
+        record.setStatus(NotificationStatus.QUEUED);
+
+        try {
+            record.setPayload(objectMapper.writeValueAsString(request.getData()));
+        } catch (Exception e) {
+            record.setPayload("{}");
+            LOG.warn("Failed to serialize payload", e);
+        }
+
+        notificationRepository.persist(record);
     }
 }

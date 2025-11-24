@@ -90,22 +90,27 @@ public class NotificationProcessor {
      * We use REQUIRES_NEW to ensure this commit happens independently of the main processing flow.
      */
     @Transactional(Transactional.TxType.REQUIRES_NEW)
-    public void updateNotificationStatus(String id, NotificationStatus status, String errorMessage) {
+    void updateNotificationStatus(String id, NotificationStatus status, String errorMessage) {
         if (id == null) return;
 
         NotificationRecord record = notificationRepository.findById(id);
         if (record != null) {
-            record.status = status;
+            record.setStatus(status);
 
             NotificationAttempt attempt = new NotificationAttempt();
-            attempt.status = status;
-            attempt.errorMessage = errorMessage != null && errorMessage.length() > 1024
-                    ? errorMessage.substring(0, 1024)
-                    : errorMessage;
+            attempt.setStatus(status);
+            attempt.setNotification(record); // Set relationship manually
 
-            record.addAttempt(attempt);
+            if (errorMessage != null && errorMessage.length() > 1024) {
+                attempt.setErrorMessage(errorMessage.substring(0, 1024));
+            } else {
+                attempt.setErrorMessage(errorMessage);
+            }
 
-            // Panache automatically persists changes to 'record' on transaction commit
+            // Add to parent collection manually
+            record.getAttempts().add(attempt);
+
+            // Panache/Hibernate will cascade the save because of CascadeType.ALL on the relationship
         } else {
             LOG.warnf("Could not update status for notification [%s]: Record not found in DB", id);
         }

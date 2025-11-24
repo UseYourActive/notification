@@ -13,27 +13,59 @@ public class NotificationAttempt extends PanacheEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "notification_id", nullable = false)
-    public NotificationRecord notification;
+    private NotificationRecord notification;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    public NotificationStatus status;
+    private NotificationStatus status;
 
     @Column(name = "error_message", length = 1024)
-    public String errorMessage;
+    private String errorMessage;
 
     @Column(name = "provider_response", length = 1024)
-    public String providerResponse; // Stores ID from SendGrid/Twilio
+    private String providerResponse;
 
     @CreationTimestamp
     @Column(name = "attempted_at", updatable = false)
-    public LocalDateTime attemptedAt;
+    private LocalDateTime attemptedAt;
 
-    public static NotificationAttempt of(NotificationStatus status, String error, String providerResponse) {
-        NotificationAttempt attempt = new NotificationAttempt();
-        attempt.status = status;
-        attempt.errorMessage = error;
-        attempt.providerResponse = providerResponse;
-        return attempt;
+    public NotificationRecord getNotification() {
+        return notification;
+    }
+
+    public void setNotification(NotificationRecord notification) {
+        this.notification = notification;
+    }
+
+    public NotificationStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(NotificationStatus status) {
+        this.status = status;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+
+    public String getProviderResponse() {
+        return providerResponse;
+    }
+
+    public void setProviderResponse(String providerResponse) {
+        this.providerResponse = providerResponse;
+    }
+
+    public LocalDateTime getAttemptedAt() {
+        return attemptedAt;
+    }
+
+    public void setAttemptedAt(LocalDateTime attemptedAt) {
+        this.attemptedAt = attemptedAt;
     }
 }

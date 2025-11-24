@@ -20,38 +20,105 @@ public class NotificationRecord extends PanacheEntityBase {
 
     @Id
     @Column(name = "id", updatable = false, nullable = false)
-    public String id; // UUID String
+    private String id;
 
     @Column(nullable = false)
-    public String recipient;
+    private String recipient;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    public NotificationChannel channel;
+    private NotificationChannel channel;
 
     @Column(name = "template_name")
-    public String templateName;
+    private String templateName;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    public NotificationStatus status;
+    private NotificationStatus status;
 
     @Column(columnDefinition = "jsonb")
-    public String payload;
+    private String payload;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
-    public LocalDateTime createdAt;
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at")
-    public LocalDateTime updatedAt;
+    private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "notification", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    public List<NotificationAttempt> attempts = new ArrayList<>();
+    private List<NotificationAttempt> attempts = new ArrayList<>();
 
-    public void addAttempt(NotificationAttempt attempt) {
-        this.attempts.add(attempt);
-        attempt.notification = this;
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getRecipient() {
+        return recipient;
+    }
+
+    public void setRecipient(String recipient) {
+        this.recipient = recipient;
+    }
+
+    public NotificationChannel getChannel() {
+        return channel;
+    }
+
+    public void setChannel(NotificationChannel channel) {
+        this.channel = channel;
+    }
+
+    public String getTemplateName() {
+        return templateName;
+    }
+
+    public void setTemplateName(String templateName) {
+        this.templateName = templateName;
+    }
+
+    public NotificationStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(NotificationStatus status) {
+        this.status = status;
+    }
+
+    public String getPayload() {
+        return payload;
+    }
+
+    public void setPayload(String payload) {
+        this.payload = payload;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public List<NotificationAttempt> getAttempts() {
+        return attempts;
+    }
+
+    public void setAttempts(List<NotificationAttempt> attempts) {
+        this.attempts = attempts;
     }
 }
