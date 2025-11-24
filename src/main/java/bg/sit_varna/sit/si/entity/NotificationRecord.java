@@ -36,9 +36,7 @@ public class NotificationRecord extends PanacheEntityBase {
     @Column(nullable = false)
     public NotificationStatus status;
 
-    // Store the dynamic data payload as a JSON string
-    // In Postgres, use @Column(columnDefinition = "jsonb")
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "jsonb")
     public String payload;
 
     @CreationTimestamp
@@ -52,7 +50,6 @@ public class NotificationRecord extends PanacheEntityBase {
     @OneToMany(mappedBy = "notification", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     public List<NotificationAttempt> attempts = new ArrayList<>();
 
-    // Helper method to add attempts
     public void addAttempt(NotificationAttempt attempt) {
         this.attempts.add(attempt);
         attempt.notification = this;
