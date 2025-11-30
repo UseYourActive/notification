@@ -5,11 +5,14 @@ import bg.sit_varna.sit.si.constant.NotificationStatus;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @Table(name = "notifications", indexes = {
@@ -36,8 +39,9 @@ public class NotificationRecord extends PanacheEntityBase {
     @Column(nullable = false)
     private NotificationStatus status;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private String payload;
+    private Map<String, Object> payload;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -90,11 +94,11 @@ public class NotificationRecord extends PanacheEntityBase {
         this.status = status;
     }
 
-    public String getPayload() {
+    public Map<String, Object> getPayload() {
         return payload;
     }
 
-    public void setPayload(String payload) {
+    public void setPayload(Map<String, Object> payload) {
         this.payload = payload;
     }
 

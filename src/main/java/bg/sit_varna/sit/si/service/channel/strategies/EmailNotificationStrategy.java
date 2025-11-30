@@ -15,6 +15,7 @@ import org.jboss.logging.Logger;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @ApplicationScoped
 public final class EmailNotificationStrategy implements ChannelStrategy {
@@ -58,7 +59,9 @@ public final class EmailNotificationStrategy implements ChannelStrategy {
             List<String> ccList = extractEmailList(request, "cc");
             List<String> bccList = extractEmailList(request, "bcc");
 
-            sender.send(recipient, subject, content, ccList, bccList, locale);
+            Map<String, String> metadata = Map.of("notificationId", request.getId());
+
+            sender.send(recipient, subject, content, ccList, bccList, locale, metadata);
 
             LOG.infof("Email sent successfully via %s to: %s", provider, recipient);
 
@@ -76,7 +79,6 @@ public final class EmailNotificationStrategy implements ChannelStrategy {
         }
     }
 
-    // ... extractSubject and extractEmailList methods remain exactly the same ...
     private String extractSubject(Notification request) {
         if (request.getData() != null && request.getData().containsKey("subject")) {
             return request.getData().get("subject").toString();

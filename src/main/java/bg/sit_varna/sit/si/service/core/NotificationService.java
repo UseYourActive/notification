@@ -79,12 +79,7 @@ public class NotificationService {
         record.setTemplateName(request.getTemplateName());
         record.setStatus(NotificationStatus.QUEUED);
 
-        try {
-            record.setPayload(objectMapper.writeValueAsString(request.getData()));
-        } catch (Exception e) {
-            record.setPayload("{}");
-            LOG.warn("Failed to serialize payload", e);
-        }
+        record.setPayload(request.getData());
 
         notificationRepository.persist(record);
     }

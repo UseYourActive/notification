@@ -18,6 +18,7 @@ import org.jboss.logging.Logger;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @ApplicationScoped
 public class SendGridEmailSender implements EmailSender {
@@ -39,12 +40,12 @@ public class SendGridEmailSender implements EmailSender {
     }
 
     @Override
-    public void send(String to, String subject, String content, List<String> ccList, List<String> bccList, Locale locale) {
+    public void send(String to, String subject, String content, List<String> ccList, List<String> bccList, Locale locale, Map<String, String> metadata) {
         LOG.debugf("Preparing SendGrid request for: %s", to);
 
         try {
             SendGrid sendGrid = new SendGrid(sendGridConfig.apiKey());
-            Mail mail = buildMail(to, subject, content, ccList, bccList);
+            Mail mail = buildMail(to, subject, content, ccList, bccList, metadata);
 
             Request request = new Request();
             request.setMethod(Method.POST);
@@ -77,7 +78,7 @@ public class SendGridEmailSender implements EmailSender {
         }
     }
 
-    private Mail buildMail(String to, String subject, String content, List<String> ccList, List<String> bccList) {
+    private Mail buildMail(String to, String subject, String content, List<String> ccList, List<String> bccList, Map<String, String> metadata) {
         Email from = new Email(sendGridConfig.fromEmail(), sendGridConfig.fromName());
         Email recipient = new Email(to);
         Content emailContent = new Content("text/html", content);
@@ -94,6 +95,13 @@ public class SendGridEmailSender implements EmailSender {
                 mail.personalization.getFirst().addBcc(new Email(bcc));
             }
         }
+
+        if (metadata != null && !metadata.isEmpty()) {
+            for (Map.Entry<String, String> entry : metadata.entrySet()) {
+                mail.addCustomArg(entry.getKey(), entry.getValue());
+            }
+        }
+
         return mail;
     }
 
