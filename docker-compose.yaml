@@ -5,16 +5,18 @@ services:
     image: quarkus/notification-service
     container_name: notification-app
     ports:
-      - "8080:8080"
+      - "${APP_PORT:-8080}:${APP_INTERNAL_PORT:-8080}"
     depends_on:
       postgres:
-        condition: service_started
+        condition: service_healthy
       redis:
         condition: service_healthy
     networks:
       - notification-network
     restart: on-failure
     environment:
+      QUARKUS_HTTP_PORT: "${APP_INTERNAL_PORT:-8080}"
+
       QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://postgres-notification:5432/${QUARKUS_DATASOURCE_DB}
       QUARKUS_DATASOURCE_USERNAME: ${QUARKUS_DATASOURCE_USERNAME}
       QUARKUS_DATASOURCE_PASSWORD: ${QUARKUS_DATASOURCE_PASSWORD}
@@ -37,14 +39,15 @@ services:
       TELEGRAM_BOT_USERNAME: "${TELEGRAM_BOT_USERNAME}"
 
       # --- Viber Configuration ---
-      VIBER_ENABLED: "false"
-      VIBER_AUTH_TOKEN: "dummy_token"
+      VIBER_ENABLED: "${VIBER_ENABLED}"
+      VIBER_AUTH_TOKEN: "${VIBER_AUTH_TOKEN}"
+      VIBER_SENDER_NAME: ${VIBER_SENDER_NAME}
 
   redis:
     image: redis:7-alpine
     container_name: redis-notification-service
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
     command: redis-server --appendonly yes
     volumes:
       - redis-data:/data
@@ -61,7 +64,7 @@ services:
     image: rediscommander/redis-commander:latest
     container_name: redis-ui-notification
     ports:
-      - "8081:8081"
+      - "${REDIS_UI_PORT:-8081}:8081"
     environment:
       REDIS_HOSTS: local:redis:6379
     depends_on:
@@ -78,7 +81,7 @@ services:
       POSTGRES_PASSWORD: ${QUARKUS_DATASOURCE_PASSWORD}
       POSTGRES_DB: ${QUARKUS_DATASOURCE_DB}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
@@ -98,12 +101,26 @@ services:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     ports:
-      - "5050:80"
+      - "${PGADMIN_PORT:-5050}:80"
     depends_on:
       - postgres
     networks:
       - notification-network
     restart: unless-stopped
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ngrok-tunnel
+    restart: unless-stopped
+    command: http --domain=${NGROK_DOMAIN} app:${APP_INTERNAL_PORT:-8080}
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+    ports:
+      - "4040:4040"
+    networks:
+      - notification-network
+    depends_on:
+      - app
 
 volumes:
   redis-data:
