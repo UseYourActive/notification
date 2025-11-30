@@ -25,7 +25,7 @@ public class TemplateRegistry {
         this.parser = parser;
     }
 
-    public List<TemplateInfo> getAvailableTemplates() {
+    public List<TemplateInfo> getAvailableFileTemplates() {
         Map<String, TemplateInfo> templates = new HashMap<>();
 
         List<String> templateFiles = scanner.scanTemplateFiles();

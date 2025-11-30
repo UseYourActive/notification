@@ -15,6 +15,7 @@ services:
       - notification-network
     restart: on-failure
     environment:
+      REDIS_DEDUPLICATION_ENABLED: ${REDIS_DEDUPLICATION_ENABLED}
       QUARKUS_SWAGGER_UI_ALWAYS_INCLUDE: "${SWAGGER_UI_ENABLED}"
 
       QUARKUS_HTTP_PORT: "${APP_INTERNAL_PORT:-8080}"

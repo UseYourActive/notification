@@ -3,10 +3,12 @@ package bg.sit_varna.sit.si.controller.resource;
 import bg.sit_varna.sit.si.config.app.LocaleResolver;
 import bg.sit_varna.sit.si.controller.api.TemplateApi;
 import bg.sit_varna.sit.si.controller.base.BaseResource;
+import bg.sit_varna.sit.si.dto.request.CreateTemplateRequest;
 import bg.sit_varna.sit.si.dto.request.GetTemplatesRequest;
 import bg.sit_varna.sit.si.dto.request.TemplateValidationRequest;
 import bg.sit_varna.sit.si.dto.response.GetTemplatesResponse;
 import bg.sit_varna.sit.si.dto.response.TemplateValidationResponse;
+import bg.sit_varna.sit.si.dto.response.UpdateTemplateRequest;
 import bg.sit_varna.sit.si.template.core.TemplateInfo;
 import bg.sit_varna.sit.si.template.core.TemplateService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -17,6 +19,7 @@ import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
@@ -65,11 +68,11 @@ public class TemplateResource extends BaseResource implements TemplateApi {
      * Get available templates
      */
     @Override
-    public Response getAvailableTemplates(@BeanParam GetTemplatesRequest request) {
+    public Response getAvailableFileTemplates(@BeanParam GetTemplatesRequest request) {
         LOG.infof("Getting available templates with filters - type: %s, locale: %s",
                 request.getType(), request.getLocale());
 
-        List<TemplateInfo> templates = templateService.getAvailableTemplates();
+        List<TemplateInfo> templates = templateService.getAvailableFileTemplates();
 
         // Apply filters if provided
         if (request.getType() != null && !request.getType().isBlank()) {
@@ -86,5 +89,36 @@ public class TemplateResource extends BaseResource implements TemplateApi {
 
         GetTemplatesResponse response = GetTemplatesResponse.of(templates);
         return Response.ok(response).build();
+    }
+
+    @Override
+    public Response createTemplate(CreateTemplateRequest request) {
+        LOG.infof("Creating DB template: %s (%s)", request.templateName(), request.locale());
+        return Response.status(Response.Status.CREATED)
+                .entity(templateService.createTemplate(request))
+                .build();
+    }
+
+    @Override
+    public Response getAllDbTemplates() {
+        return Response.ok(templateService.getAllDbTemplates()).build();
+    }
+
+    @Override
+    public Response getTemplate(String id) {
+        return Response.ok(templateService.getTemplate(UUID.fromString(id))).build();
+    }
+
+    @Override
+    public Response updateTemplate(String id, UpdateTemplateRequest request) {
+        LOG.infof("Updating DB template: %s", id);
+        return Response.ok(templateService.updateTemplate(UUID.fromString(id), request)).build();
+    }
+
+    @Override
+    public Response deleteTemplate(String id) {
+        LOG.infof("Deleting DB template: %s", id);
+        templateService.deleteTemplate(UUID.fromString(id));
+        return Response.noContent().build();
     }
 }

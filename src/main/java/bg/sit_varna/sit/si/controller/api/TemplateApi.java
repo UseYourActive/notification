@@ -1,9 +1,11 @@
 package bg.sit_varna.sit.si.controller.api;
 
+import bg.sit_varna.sit.si.dto.request.CreateTemplateRequest;
 import bg.sit_varna.sit.si.dto.request.GetTemplatesRequest;
 import bg.sit_varna.sit.si.dto.request.TemplateValidationRequest;
 import bg.sit_varna.sit.si.dto.response.GetTemplatesResponse;
 import bg.sit_varna.sit.si.dto.response.TemplateValidationResponse;
+import bg.sit_varna.sit.si.dto.response.UpdateTemplateRequest;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -15,6 +17,8 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+
+import java.util.UUID;
 
 /**
  * REST API interface for notification template discovery and validation.
@@ -234,6 +238,7 @@ public interface TemplateApi {
      * Get available templates
      */
     @GET
+    @Path("/discovery")
     @Operation(
             summary = "List all available templates",
             description = """
@@ -528,5 +533,23 @@ public interface TemplateApi {
                     )
             )
     })
-    Response getAvailableTemplates(@BeanParam GetTemplatesRequest request);
+    Response getAvailableFileTemplates(@BeanParam GetTemplatesRequest request);
+
+    @POST
+    Response createTemplate(@Valid CreateTemplateRequest request);
+
+    @GET
+    Response getAllDbTemplates();
+
+    @GET
+    @Path("/{id}")
+    Response getTemplate(@PathParam("id") String id);
+
+    @PUT
+    @Path("/{id}")
+    Response updateTemplate(@PathParam("id") String id, @Valid UpdateTemplateRequest request);
+
+    @DELETE
+    @Path("/{id}")
+    Response deleteTemplate(@PathParam("id") String id);
 }

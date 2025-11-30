@@ -72,6 +72,13 @@ public class NotificationService {
     }
 
     private void createNotificationRecord(Notification request) {
+        NotificationRecord existing = notificationRepository.findById(request.getId());
+
+        if (existing != null) {
+            LOG.debugf("Notification record %s already exists. Skipping creation.", request.getId());
+            return;
+        }
+
         NotificationRecord record = new NotificationRecord();
         record.setId(request.getId());
         record.setRecipient(request.getRecipient());
