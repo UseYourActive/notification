@@ -11,6 +11,7 @@ import bg.sit_varna.sit.si.service.core.MessageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
+
 import java.util.Locale;
 
 @ApplicationScoped

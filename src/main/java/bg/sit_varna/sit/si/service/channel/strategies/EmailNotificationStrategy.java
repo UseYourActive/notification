@@ -1,10 +1,10 @@
 package bg.sit_varna.sit.si.service.channel.strategies;
 
+import bg.sit_varna.sit.si.config.channel.EmailConfig;
 import bg.sit_varna.sit.si.constant.NotificationChannel;
 import bg.sit_varna.sit.si.constant.NotificationErrorCode;
 import bg.sit_varna.sit.si.dto.model.Notification;
 import bg.sit_varna.sit.si.exception.exceptions.EmailSendException;
-import bg.sit_varna.sit.si.config.channel.EmailConfig;
 import bg.sit_varna.sit.si.service.channel.email.EmailSender;
 import bg.sit_varna.sit.si.service.channel.email.EmailSenderFactory;
 import bg.sit_varna.sit.si.service.core.MessageService;

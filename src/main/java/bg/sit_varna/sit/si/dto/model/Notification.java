@@ -1,6 +1,7 @@
 package bg.sit_varna.sit.si.dto.model;
 
 import bg.sit_varna.sit.si.constant.NotificationChannel;
+
 import java.util.Collections;
 import java.util.Map;
 

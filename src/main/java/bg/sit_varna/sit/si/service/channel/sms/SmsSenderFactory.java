@@ -3,6 +3,7 @@ package bg.sit_varna.sit.si.service.channel.sms;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
+
 import java.util.Optional;
 
 @ApplicationScoped

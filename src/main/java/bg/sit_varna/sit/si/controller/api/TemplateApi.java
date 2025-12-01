@@ -18,8 +18,6 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
-import java.util.UUID;
-
 /**
  * REST API interface for notification template discovery and validation.
  *
