@@ -1,10 +1,13 @@
 package bg.sit_varna.sit.si.dto.model;
 
 import bg.sit_varna.sit.si.constant.NotificationChannel;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.Collections;
 import java.util.Map;
 
+@JsonDeserialize(builder = Notification.Builder.class)
 public class Notification {
 
     private final String id;
@@ -60,6 +63,7 @@ public class Notification {
         this.processedContent = content;
     }
 
+    @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private String id;
         private String recipient;

@@ -31,7 +31,7 @@ public class RetryScheduler {
             for (Notification notification : dueNotifications) {
                 // We use the dispatch method to put it back into the internal memory queue
                 // This triggers the whole @Retry cycle again
-                notificationService.dispatchNotification(notification);
+                notificationService.retryNotification(notification);
             }
         }
     }

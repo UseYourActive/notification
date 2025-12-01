@@ -42,11 +42,31 @@ public class NotificationService {
     @Channel("notification-queue")
     Emitter<Notification> notificationEmitter;
 
-    @Transactional
     public void dispatchNotification(Notification request) {
-        Locale locale = Locale.forLanguageTag(request.getLocale());
+        // 1. Rate Limiting
+        checkRateLimit(request);
 
-        // Rate Limiting
+        // 2. Deduplication
+        String contentKey = request.usesTemplate() ? request.getTemplateName() : request.getMessage();
+        if (deduplicationService.isDuplicate(request.getRecipient(), request.getChannel(), contentKey)) {
+            LOG.warnf("Skipping duplicate notification for %s", request.getRecipient());
+            return;
+        }
+
+        // 3. Persistence (In its own transaction to prevent Race Condition)
+        persistRecord(request);
+
+        // 4. Async Dispatch
+        enqueue(request);
+    }
+
+    public void retryNotification(Notification request) {
+        LOG.infof("Retrying notification %s from Cold Queue", request.getId());
+        enqueue(request);
+    }
+
+    private void checkRateLimit(Notification request) {
+        Locale locale = Locale.forLanguageTag(request.getLocale());
         if (!rateLimitService.isAllowed(request.getRecipient(), request.getChannel())) {
             long resetTime = rateLimitService.getResetTime(request.getRecipient(), request.getChannel());
             throw new RateLimitException(
@@ -56,26 +76,11 @@ public class NotificationService {
                     resetTime
             );
         }
-
-        // Deduplication
-        String contentKey = request.usesTemplate() ? request.getTemplateName() : request.getMessage();
-        if (deduplicationService.isDuplicate(request.getRecipient(), request.getChannel(), contentKey)) {
-            LOG.warnf("Skipping duplicate notification for %s", request.getRecipient());
-            return; // We treat this as "success" (idempotency) but don't enqueue
-        }
-
-        createNotificationRecord(request);
-
-        // 3. Async Dispatch: Push to Queue
-        LOG.debugf("Enqueuing notification for: %s", request.getRecipient());
-        notificationEmitter.send(request);
     }
 
-    private void createNotificationRecord(Notification request) {
-        NotificationRecord existing = notificationRepository.findById(request.getId());
-
-        if (existing != null) {
-            LOG.debugf("Notification record %s already exists. Skipping creation.", request.getId());
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    protected void persistRecord(Notification request) {
+        if (notificationRepository.findById(request.getId()) != null) {
             return;
         }
 
@@ -85,9 +90,13 @@ public class NotificationService {
         record.setChannel(request.getChannel());
         record.setTemplateName(request.getTemplateName());
         record.setStatus(NotificationStatus.QUEUED);
-
         record.setPayload(request.getData());
 
         notificationRepository.persist(record);
+    }
+
+    private void enqueue(Notification request) {
+        LOG.debugf("Enqueuing notification for: %s", request.getRecipient());
+        notificationEmitter.send(request);
     }
 }

@@ -5,6 +5,7 @@ import bg.sit_varna.sit.si.dto.event.SendGridEvent;
 import bg.sit_varna.sit.si.entity.NotificationAttempt;
 import bg.sit_varna.sit.si.entity.NotificationRecord;
 import bg.sit_varna.sit.si.repository.NotificationRepository;
+import bg.sit_varna.sit.si.service.core.NotificationStateService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -19,6 +20,8 @@ public class WebhookProcessor {
 
     @Inject
     NotificationRepository notificationRepository;
+    @Inject
+    NotificationStateService stateService;
 
     @Transactional
     public void processEvents(List<SendGridEvent> events) {
@@ -50,40 +53,43 @@ public class WebhookProcessor {
         // SendGrid event types: delivered, open, click, bounce, dropped, spamreport, deferred, processed
         String type = event.getEvent() != null ? event.getEvent().toLowerCase() : "unknown";
         String detail = "SendGrid Event: " + type;
+        String providerId = event.getSgMessageId();
 
         switch (type) {
             case "delivered":
                 // Success
-                record.setStatus(NotificationStatus.SENT);
-                addHistory(record, NotificationStatus.SENT, "Delivered to recipient inbox");
+                stateService.updateStatus(record.getId(), NotificationStatus.SENT,
+                        "Delivered to recipient inbox", providerId);
                 break;
 
             case "bounce":
             case "dropped":
                 // Permanent failures
-                record.setStatus(NotificationStatus.FAILED);
-                addHistory(record, NotificationStatus.FAILED, "Delivery Failed: " + type);
+                stateService.updateStatus(record.getId(), NotificationStatus.FAILED,
+                        "Delivery Failed: " + type, providerId);
                 break;
 
             case "spamreport":
                 // Critical failure - User hated it
-                record.setStatus(NotificationStatus.FAILED);
-                addHistory(record, NotificationStatus.FAILED, "User marked email as SPAM");
+                stateService.updateStatus(record.getId(), NotificationStatus.FAILED,
+                        "User marked email as SPAM", providerId);
                 break;
 
             case "deferred":
                 // Temporary failure, SendGrid will retry.
-                addHistory(record, record.getStatus(), "Delivery deferred by ISP");
+                stateService.updateStatus(record.getId(), record.getStatus(),
+                        "Delivery deferred by ISP", providerId);
                 break;
 
             case "open":
             case "click":
                 // Engagement events - purely informational
-                addHistory(record, record.getStatus(), "User interaction: " + type);
+                stateService.updateStatus(record.getId(), record.getStatus(),
+                        "User interaction: " + type, providerId);
                 break;
 
             default:
-                addHistory(record, record.getStatus(), detail);
+                stateService.updateStatus(record.getId(), record.getStatus(), detail, providerId);
                 break;
         }
     }

@@ -3,18 +3,15 @@ package bg.sit_varna.sit.si.service.async;
 import bg.sit_varna.sit.si.config.app.ApplicationConfig;
 import bg.sit_varna.sit.si.constant.NotificationStatus;
 import bg.sit_varna.sit.si.dto.model.Notification;
-import bg.sit_varna.sit.si.entity.NotificationAttempt;
-import bg.sit_varna.sit.si.entity.NotificationRecord;
-import bg.sit_varna.sit.si.repository.NotificationRepository;
 import bg.sit_varna.sit.si.service.channel.strategies.ChannelStrategy;
 import bg.sit_varna.sit.si.service.channel.strategies.ChannelStrategyFactory;
+import bg.sit_varna.sit.si.service.core.NotificationStateService;
 import bg.sit_varna.sit.si.service.redis.MetricsService;
 import bg.sit_varna.sit.si.service.redis.RedisRetryService;
 import bg.sit_varna.sit.si.template.core.TemplateService;
 import io.smallrye.reactive.messaging.annotations.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import org.eclipse.microprofile.faulttolerance.Fallback;
 import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
@@ -30,7 +27,7 @@ public class NotificationProcessor {
     @Inject TemplateService templateService;
     @Inject MetricsService metricsService;
     @Inject ChannelStrategyFactory channelStrategyFactory;
-    @Inject NotificationRepository notificationRepository;
+    @Inject NotificationStateService stateService;
 
     @Incoming("notification-queue")
     @Blocking("notification-workers")
@@ -50,7 +47,13 @@ public class NotificationProcessor {
 
         strategy.send(notification);
 
-        updateNotificationStatus(notification.getId(), NotificationStatus.SENT, null);
+        stateService.updateStatus(
+                notification.getId(),
+                NotificationStatus.SENT,
+                "Sent successfully via " + strategy.getChannel(),
+                null
+        );
+
         metricsService.recordNotification(notification.getChannel(), NotificationStatus.SENT);
 
         LOG.infof("Async processing completed for: %s", notification.getRecipient());
@@ -64,14 +67,16 @@ public class NotificationProcessor {
         LOG.warnf("All immediate retries failed for notification [%s]. Moving to Redis Cold Queue.",
                 notification.getId());
 
-        // 1. Update DB status to FAILED (temporarily, until resurrected)
-        updateNotificationStatus(notification.getId(), NotificationStatus.FAILED,
-                "Immediate retries exhausted. Moved to Redis queue.");
+        stateService.updateStatus(
+                notification.getId(),
+                NotificationStatus.FAILED,
+                "Immediate retries exhausted. Moved to Redis queue.",
+                null
+        );
 
-        // 2. Record Metric
         metricsService.recordNotification(notification.getChannel(), NotificationStatus.FAILED);
 
-        // 3. Schedule for 5 minutes later (Cold Retry)
+        // Schedule for 5 minutes later (Cold Retry)
         redisRetryService.scheduleRetry(notification, 300);
     }
 
@@ -84,35 +89,5 @@ public class NotificationProcessor {
             );
         }
         return request.getMessage();
-    }
-
-    /**
-     * We use REQUIRES_NEW to ensure this commit happens independently of the main processing flow.
-     */
-    @Transactional(Transactional.TxType.REQUIRES_NEW)
-    void updateNotificationStatus(String id, NotificationStatus status, String errorMessage) {
-        if (id == null) return;
-
-        NotificationRecord record = notificationRepository.findById(id);
-        if (record != null) {
-            record.setStatus(status);
-
-            NotificationAttempt attempt = new NotificationAttempt();
-            attempt.setStatus(status);
-            attempt.setNotification(record); // Set relationship manually
-
-            if (errorMessage != null && errorMessage.length() > 1024) {
-                attempt.setErrorMessage(errorMessage.substring(0, 1024));
-            } else {
-                attempt.setErrorMessage(errorMessage);
-            }
-
-            // Add to parent collection manually
-            record.getAttempts().add(attempt);
-
-            // Panache/Hibernate will cascade the save because of CascadeType.ALL on the relationship
-        } else {
-            LOG.warnf("Could not update status for notification [%s]: Record not found in DB", id);
-        }
     }
 }
