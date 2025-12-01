@@ -7,12 +7,19 @@ public class EmailSendException extends NotificationException {
 
     private final String recipient;
 
-    public EmailSendException(NotificationErrorCode errorCode, String title, String detail, String recipient) {
+    public EmailSendException(NotificationErrorCode errorCode,
+                              String title,
+                              String detail,
+                              String recipient) {
         super(errorCode, ErrorCategory.NOTIFICATION_SENDING, title, detail);
         this.recipient = recipient;
     }
 
-    public EmailSendException(NotificationErrorCode errorCode, String title, String detail, String recipient, Throwable cause) {
+    public EmailSendException(NotificationErrorCode errorCode,
+                              String title,
+                              String detail,
+                              String recipient,
+                              Throwable cause) {
         super(errorCode, ErrorCategory.NOTIFICATION_SENDING, title, detail, cause);
         this.recipient = recipient;
     }

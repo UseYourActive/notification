@@ -16,7 +16,6 @@ import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
 
 import java.util.Locale;
-import java.util.UUID;
 
 @ApplicationScoped
 public class NotificationResource extends BaseResource implements NotificationApi {
@@ -50,11 +49,7 @@ public class NotificationResource extends BaseResource implements NotificationAp
     public Response sendNotification(@Valid SendNotificationRequest request) {
         Locale resolvedLocale = resolveLocale();
 
-        String notificationId = UUID.randomUUID().toString();
-
-        Notification notification = notificationMapper.toNotification(request, resolvedLocale);
-
-        notification.setId(notificationId);
+        Notification notification = notificationMapper.toDomain(request, resolvedLocale);
 
         notificationService.dispatchNotification(notification);
 
