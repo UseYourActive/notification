@@ -1,7 +1,9 @@
 package bg.sit_varna.sit.si.controller.resource;
 
+import bg.sit_varna.sit.si.config.app.SendGridHeaderResolver;
 import bg.sit_varna.sit.si.controller.api.WebhookApi;
 import bg.sit_varna.sit.si.controller.base.BaseResource;
+import bg.sit_varna.sit.si.dto.model.WebhookSignature;
 import bg.sit_varna.sit.si.service.webhook.WebhookService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -12,19 +14,19 @@ import org.jboss.logging.Logger;
 public class WebhookResource extends BaseResource implements WebhookApi {
 
     private static final Logger LOG = Logger.getLogger(WebhookResource.class);
-    private static final String SIGNATURE_HEADER = "X-Twilio-Email-Event-Webhook-Signature";
-    private static final String TIMESTAMP_HEADER = "X-Twilio-Email-Event-Webhook-Timestamp";
 
     @Inject
     WebhookService webhookService;
 
+    @Inject
+    SendGridHeaderResolver headerResolver;
+
     @Override
     public Response handleSendGridWebhook(String rawPayload) {
-        String signature = httpHeaders.getHeaderString(SIGNATURE_HEADER);
-        String timestamp = httpHeaders.getHeaderString(TIMESTAMP_HEADER);
+        WebhookSignature signatureData = headerResolver.resolve(httpHeaders);
 
         try {
-            webhookService.verifyAndProcess(signature, timestamp, rawPayload);
+            webhookService.verifyAndProcess(signatureData.signature(), signatureData.timestamp(), rawPayload);
             return Response.ok().build();
         } catch (SecurityException e) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
