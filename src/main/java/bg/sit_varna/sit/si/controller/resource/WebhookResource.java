@@ -1,6 +1,6 @@
 package bg.sit_varna.sit.si.controller.resource;
 
-import bg.sit_varna.sit.si.config.app.SendGridHeaderResolver;
+import bg.sit_varna.sit.si.constant.WebhookProvider;
 import bg.sit_varna.sit.si.controller.api.WebhookApi;
 import bg.sit_varna.sit.si.controller.base.BaseResource;
 import bg.sit_varna.sit.si.dto.model.WebhookSignature;
@@ -18,12 +18,9 @@ public class WebhookResource extends BaseResource implements WebhookApi {
     @Inject
     WebhookService webhookService;
 
-    @Inject
-    SendGridHeaderResolver headerResolver;
-
     @Override
     public Response handleSendGridWebhook(String rawPayload) {
-        WebhookSignature signatureData = headerResolver.resolve(httpHeaders);
+        WebhookSignature signatureData = headerResolver.resolve(httpHeaders, WebhookProvider.SENDGRID);
 
         try {
             webhookService.verifyAndProcess(signatureData.signature(), signatureData.timestamp(), rawPayload);
