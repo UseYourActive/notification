@@ -50,12 +50,6 @@ public interface RedisConfig {
 
         @WithDefault("1h")
         Duration telegramWindow();
-
-        @WithDefault("10")
-        int viberMax();
-
-        @WithDefault("1h")
-        Duration viberWindow();
     }
 
     interface DeduplicationConfig {

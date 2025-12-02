@@ -84,8 +84,7 @@ public interface MetricsApi {
               "byChannel": {               // Channel-specific breakdown
                 "EMAIL": <number>,
                 "SMS": <number>,
-                "TELEGRAM": <number>,
-                "VIBER": <number>
+                "TELEGRAM": <number>
               },
               "successRate": <decimal>,    // Overall success rate (0-100%)
             }

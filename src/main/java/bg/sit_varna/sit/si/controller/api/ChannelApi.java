@@ -17,7 +17,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
  * REST API interface for managing notification delivery channels.
  *
  * <p>This interface provides endpoints to discover and query information about
- * available notification channels (EMAIL, SMS, TELEGRAM, VIBER) that can be
+ * available notification channels (EMAIL, SMS, TELEGRAM) that can be
  * used to deliver notifications to end users.</p>
  *
  * <p><strong>Integration Notes:</strong></p>
@@ -51,7 +51,6 @@ public interface ChannelApi {
             - EMAIL: Traditional email notifications with rich HTML content support
             - SMS: Text message notifications for critical, time-sensitive alerts
             - TELEGRAM: Instant messaging via Telegram Bot API with interactive buttons
-            - VIBER: Rich media messaging through Viber Bot API
             
             **Response Information:**
             Each channel includes:
@@ -91,11 +90,6 @@ public interface ChannelApi {
                               "name": "TELEGRAM",
                               "description": "Send notifications via Telegram",
                               "enabled": true
-                            },
-                            {
-                              "name": "VIBER",
-                              "description": "Send notifications via Viber",
-                              "enabled": false
                             }
                           ],
                           "totalCount": 4

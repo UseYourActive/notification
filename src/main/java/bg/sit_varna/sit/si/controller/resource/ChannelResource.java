@@ -57,7 +57,6 @@ public class ChannelResource extends BaseResource implements ChannelApi {
             case EMAIL -> "Send notifications via email";
             case SMS -> "Send notifications via SMS";
             case TELEGRAM -> "Send notifications via Telegram";
-            case VIBER -> "Send notifications via Viber";
         };
     }
 }

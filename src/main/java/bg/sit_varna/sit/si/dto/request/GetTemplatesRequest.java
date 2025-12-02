@@ -9,7 +9,7 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 public final class GetTemplatesRequest {
 
     @QueryParam("type")
-    @Parameter(description = "Filter by template type (email, sms, telegram, viber)",
+    @Parameter(description = "Filter by template type (email, sms, telegram)",
             example = "email")
     private String type;
 

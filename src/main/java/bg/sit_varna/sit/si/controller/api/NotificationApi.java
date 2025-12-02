@@ -23,8 +23,8 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 /**
  * REST API interface for sending notifications across multiple delivery channels.
  *
- * <p>This is the primary interface for dispatching notifications via EMAIL, SMS, TELEGRAM,
- * and VIBER channels. The API handles template rendering, locale resolution, rate limiting,
+ * <p>This is the primary interface for dispatching notifications via EMAIL, SMS, TELEGRAM channels.
+ * The API handles template rendering, locale resolution, rate limiting,
  * deduplication, and delivery confirmation.</p>
  *
  * <p><strong>Core Features:</strong></p>
@@ -44,7 +44,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
  *   <li>Rate limit check (per recipient and channel)</li>
  *   <li>Deduplication check (prevent duplicate sends within time window)</li>
  *   <li>Template rendering with provided parameters</li>
- *   <li>Channel-specific delivery via appropriate provider (SendGrid, Twilio, Telegram Bot API, Viber API)</li>
+ *   <li>Channel-specific delivery via appropriate provider (SendGrid, Twilio, Telegram Bot API)</li>
  *   <li>Delivery confirmation and logging</li>
  *   <li>Metrics collection and success/failure tracking</li>
  * </ol>
@@ -55,7 +55,6 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
  *   <li>EMAIL: 10 notifications per hour</li>
  *   <li>SMS: 5 notifications per hour</li>
  *   <li>TELEGRAM: 20 notifications per hour</li>
- *   <li>VIBER: 10 notifications per hour</li>
  * </ul>
  *
  * <p><strong>Security Considerations:</strong></p>
@@ -75,7 +74,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(
         name = "Notification Delivery",
-        description = "Send notifications across multiple channels (EMAIL, SMS, TELEGRAM, VIBER) with template support"
+        description = "Send notifications across multiple channels (EMAIL, SMS, TELEGRAM) with template support"
 )
 public interface NotificationApi {
 
@@ -112,12 +111,6 @@ public interface NotificationApi {
               - Delivery time: < 1 second (instant)
               - Best for: Real-time updates, interactive workflows
             
-            - **VIBER**:
-              - Rich media with images and buttons
-              - Suitable for: Marketing messages, promotional content
-              - Delivery time: < 1 second (instant)
-              - Best for: Engagement-focused notifications
-            
             **Locale Handling:**
             The notification language is determined by the Accept-Language header:
             - Supported: 'en' (English), 'bg' (Bulgarian)
@@ -140,7 +133,6 @@ public interface NotificationApi {
             - EMAIL: 10/hour
             - SMS: 5/hour
             - TELEGRAM: 20/hour
-            - VIBER: 10/hour
             
             Exceeding limits returns HTTP 429 with retry-after information.
             
@@ -270,7 +262,6 @@ public interface NotificationApi {
                 - EMAIL: 10 notifications per hour
                 - SMS: 5 notifications per hour
                 - TELEGRAM: 20 notifications per hour
-                - VIBER: 10 notifications per hour
                 
                 **Response Headers:**
                 - X-RateLimit-Limit: Maximum allowed requests

@@ -102,26 +102,6 @@ public enum NotificationErrorCode {
             Response.Status.TOO_MANY_REQUESTS
     ),
 
-    // Viber errors (NOTIF_031 - NOTIF_040)
-    VIBER_SEND_FAILED(
-            "NOTIF_031",
-            "error.notification.viber.send-failed",
-            "error.title.viber-failed",
-            Response.Status.BAD_GATEWAY
-    ),
-    VIBER_INVALID_RECIPIENT(
-            "NOTIF_032",
-            "error.notification.viber.invalid-recipient",
-            "error.title.invalid-data",
-            Response.Status.BAD_REQUEST
-    ),
-    VIBER_CONFIGURATION_ERROR(
-            "NOTIF_033",
-            "error.notification.viber.configuration-error",
-            "error.title.configuration-error",
-            Response.Status.SERVICE_UNAVAILABLE
-    ),
-
     // Template errors (NOTIF_041 - NOTIF_060)
     TEMPLATE_NOT_FOUND(
             "NOTIF_041",

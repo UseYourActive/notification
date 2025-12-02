@@ -93,7 +93,6 @@ public class RateLimitService {
             case EMAIL -> redisConfig.rateLimit().emailMax();
             case SMS -> redisConfig.rateLimit().smsMax();
             case TELEGRAM -> redisConfig.rateLimit().telegramMax();
-            case VIBER -> redisConfig.rateLimit().viberMax();
         };
     }
 
@@ -102,7 +101,6 @@ public class RateLimitService {
             case EMAIL -> redisConfig.rateLimit().emailWindow();
             case SMS -> redisConfig.rateLimit().smsWindow();
             case TELEGRAM -> redisConfig.rateLimit().telegramWindow();
-            case VIBER -> redisConfig.rateLimit().viberWindow();
         };
     }
 }

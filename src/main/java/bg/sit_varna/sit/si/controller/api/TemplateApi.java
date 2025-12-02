@@ -29,7 +29,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
  * <p><strong>Template Architecture:</strong></p>
  * <ul>
  *   <li>Templates are stored as files in the classpath under /resources/templates/</li>
- *   <li>Each template is channel-specific (email, sms, telegram, viber)</li>
+ *   <li>Each template is channel-specific (email, sms, telegram)</li>
  *   <li>Templates support multiple locales with fallback to default (English)</li>
  *   <li>Content uses mustache-style syntax for variable substitution: {{variableName}}</li>
  *   <li>Templates are scanned and loaded at application startup</li>
@@ -52,7 +52,6 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
  *   <li><strong>EMAIL:</strong> HTML files with rich formatting, images, and CSS styles</li>
  *   <li><strong>SMS:</strong> Plain text files with character limit considerations</li>
  *   <li><strong>TELEGRAM:</strong> Markdown-formatted text files with emoji support</li>
- *   <li><strong>VIBER:</strong> Plain text or rich media templates</li>
  * </ul>
  *
  * <p><strong>Template Variables:</strong></p>
@@ -253,7 +252,7 @@ public interface TemplateApi {
             **Query Parameters:**
             Both parameters are optional. If neither is provided, all templates are returned.
             
-            - **type**: Filter by channel type (email, sms, telegram, viber)
+            - **type**: Filter by channel type (email, sms, telegram)
               - Example: ?type=email returns only email templates
               - Case-insensitive
             
@@ -510,7 +509,7 @@ public interface TemplateApi {
                 Bad Request - Invalid filter parameter values.
                 
                 This error occurs when:
-                - Invalid 'type' value (not one of: email, sms, telegram, viber)
+                - Invalid 'type' value (not one of: email, sms, telegram)
                 - Invalid 'locale' format
                 
                 Query parameters must match expected formats and allowed values.
@@ -523,7 +522,7 @@ public interface TemplateApi {
                         {
                           "error": "VALIDATION_ERROR",
                           "message": "Invalid channel type: push_notification",
-                          "validTypes": ["email", "sms", "telegram", "viber"],
+                          "validTypes": ["email", "sms", "telegram"],
                           "timestamp": "2025-10-31T14:23:45Z"
                         }
                         """

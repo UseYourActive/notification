@@ -63,7 +63,7 @@ public class ValidNotificationRequestValidator
 
         return switch (channel) {
             case EMAIL -> validateEmailRecipient(recipient, context);
-            case SMS, VIBER -> validatePhoneRecipient(recipient, context);
+            case SMS -> validatePhoneRecipient(recipient, context);
             case TELEGRAM -> validateTelegramRecipient(recipient, context);
         };
     }

@@ -47,8 +47,6 @@ public class TemplateFileParser {
             return "sms";
         } else if (filePath.startsWith("telegram/")) {
             return "telegram";
-        } else if (filePath.startsWith("viber/")) {
-            return "viber";
         }
         return "unknown";
     }

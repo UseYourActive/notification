@@ -19,11 +19,6 @@ telegram:
     title: "Неуспешно изпращане на Telegram съобщение"
     message: "Неуспешно изпращане на Telegram съобщение до {0}: {1}"
 
-viber:
-  send-failed:
-    title: "Неуспешно изпращане на Viber съобщение"
-    message: "Неуспешно изпращане на Viber съобщение до {0}: {1}"
-
 notification:
   send-failed:
     title: "Неуспешно изпращане на известие"
@@ -62,11 +57,6 @@ error:
       invalid-recipient: "Невалиден Telegram получател: %s"
       rate-limited: "Превишен лимит за Telegram. Опитайте отново след %d секунди"
 
-    viber:
-      send-failed: "Неуспешно изпращане на Viber съобщение до %s: %s"
-      invalid-recipient: "Невалиден Viber получател: %s"
-      configuration-error: "Viber услугата не е правилно конфигурирана"
-
   template:
     not-found: "Шаблон '%s' не е намерен за език '%s'"
     render-error: "Неуспешно рендериране на шаблон '%s': %s"
@@ -84,7 +74,6 @@ error:
     email-failed: "Неуспешно изпращане на имейл"
     sms-failed: "Неуспешно изпращане на SMS"
     telegram-failed: "Неуспешно изпращане на Telegram"
-    viber-failed: "Неуспешно изпращане на Viber"
     template-not-found: "Шаблонът не е намерен"
     template-error: "Грешка при обработка на шаблон"
     validation-failed: "Неуспешна валидация"

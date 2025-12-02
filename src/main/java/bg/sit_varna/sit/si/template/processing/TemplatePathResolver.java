@@ -14,8 +14,7 @@ public class TemplatePathResolver {
     private static final Map<String, String> EXTENSIONS = Map.of(
             "email", ".html",
             "sms", ".txt",
-            "telegram", ".txt",
-            "viber", ".txt"
+            "telegram", ".txt"
     );
 
     @Inject

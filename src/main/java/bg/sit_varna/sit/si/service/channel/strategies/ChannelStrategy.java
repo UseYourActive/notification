@@ -6,8 +6,7 @@ import bg.sit_varna.sit.si.dto.model.Notification;
 public sealed interface ChannelStrategy permits
         EmailNotificationStrategy,
         SmsNotificationStrategy,
-        TelegramNotificationStrategy,
-        ViberNotificationStrategy {
+        TelegramNotificationStrategy {
 
     void send(Notification request);
 
