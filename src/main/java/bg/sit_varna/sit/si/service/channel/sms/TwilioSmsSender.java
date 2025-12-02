@@ -12,8 +12,11 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Form;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.faulttolerance.Retry;
+import org.eclipse.microprofile.faulttolerance.Timeout;
 import org.jboss.logging.Logger;
 
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Locale;
 
@@ -33,13 +36,9 @@ public final class TwilioSmsSender implements SmsSender {
         return twilioConfig.isConfigured();
     }
 
-    /**
-     * Send an SMS via Twilio API.
-     *
-     * @param recipient phone number to send to
-     * @param message   message content
-     * @throws SmsSendException if sending fails
-     */
+    @Override
+    @Timeout(value = 10, unit = ChronoUnit.SECONDS)
+    @Retry(maxRetries = 3, delay = 1000)
     public void send(String recipient, String message, Locale locale) {
         LOG.infof("Sending SMS via Twilio to: %s", recipient);
 

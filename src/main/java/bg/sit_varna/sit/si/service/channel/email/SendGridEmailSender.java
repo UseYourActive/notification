@@ -13,9 +13,12 @@ import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.eclipse.microprofile.faulttolerance.Retry;
+import org.eclipse.microprofile.faulttolerance.Timeout;
 import org.jboss.logging.Logger;
 
 import java.io.IOException;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -40,7 +43,14 @@ public class SendGridEmailSender implements EmailSender {
     }
 
     @Override
-    public void send(String to, String subject, String content, List<String> ccList, List<String> bccList, Locale locale, Map<String, String> metadata) {
+    @Timeout(value = 10, unit = ChronoUnit.SECONDS)
+    @Retry(maxRetries = 3, delay = 1000)
+    public void send(String to, String subject,
+                     String content,
+                     List<String> ccList,
+                     List<String> bccList,
+                     Locale locale,
+                     Map<String, String> metadata) {
         LOG.debugf("Preparing SendGrid request for: %s", to);
 
         try {

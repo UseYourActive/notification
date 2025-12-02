@@ -1,5 +1,6 @@
 package bg.sit_varna.sit.si.template.loading;
 
+import bg.sit_varna.sit.si.constant.NotificationChannel;
 import jakarta.enterprise.context.ApplicationScoped;
 
 
@@ -41,13 +42,14 @@ public class TemplateFileParser {
      * Example: "email/welcome_en.html" -> "email"
      */
     public String extractType(String filePath) {
-        if (filePath.startsWith("email/")) {
-            return "email";
-        } else if (filePath.startsWith("sms/")) {
-            return "sms";
-        } else if (filePath.startsWith("telegram/")) {
-            return "telegram";
+        for (NotificationChannel channel : NotificationChannel.values()) {
+            String prefix = channel.getFolderName() + "/";
+
+            if (filePath.startsWith(prefix)) {
+                return channel.getFolderName(); // "email"
+            }
         }
+
         return "unknown";
     }
 }
