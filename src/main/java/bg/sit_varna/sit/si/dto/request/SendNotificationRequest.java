@@ -1,6 +1,7 @@
 package bg.sit_varna.sit.si.dto.request;
 
 import bg.sit_varna.sit.si.constant.NotificationChannel;
+import bg.sit_varna.sit.si.validation.annotation.ValidNotificationRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -8,6 +9,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import java.util.Map;
 
 @Schema(description = "Request for sending a notification synchronously")
+@ValidNotificationRequest
 public record SendNotificationRequest(
 
         @NotNull(message = "Channel is required")
