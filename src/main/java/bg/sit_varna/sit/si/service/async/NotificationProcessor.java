@@ -16,6 +16,7 @@ import org.eclipse.microprofile.faulttolerance.Fallback;
 import org.eclipse.microprofile.faulttolerance.Retry;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 import org.jboss.logging.Logger;
+import org.jboss.logging.MDC;
 
 @ApplicationScoped
 public class NotificationProcessor {
@@ -36,27 +37,32 @@ public class NotificationProcessor {
     public void processNotification(Notification notification) {
         LOG.infof("Processing async notification [%s] for: %s via %s",
                 notification.getId(), notification.getRecipient(), notification.getChannel());
+        MDC.put("notificationId", notification.getId());
 
-        // Render Template
-        String processedContent = processContent(notification);
-        notification.setProcessedContent(processedContent);
+        try {
+            // Render Template
+            String processedContent = processContent(notification);
+            notification.setProcessedContent(processedContent);
 
-        ChannelStrategy strategy = channelStrategyFactory.getStrategy(notification.getChannel())
-                .orElseThrow(() -> new UnsupportedOperationException(
-                        "No strategy configured for channel: " + notification.getChannel()));
+            ChannelStrategy strategy = channelStrategyFactory.getStrategy(notification.getChannel())
+                    .orElseThrow(() -> new UnsupportedOperationException(
+                            "No strategy configured for channel: " + notification.getChannel()));
 
-        strategy.send(notification);
+            strategy.send(notification);
 
-        stateService.updateStatus(
-                notification.getId(),
-                NotificationStatus.SENT,
-                "Sent successfully via " + strategy.getChannel(),
-                null
-        );
+            stateService.updateStatus(
+                    notification.getId(),
+                    NotificationStatus.SENT,
+                    "Sent successfully via " + strategy.getChannel(),
+                    null
+            );
 
-        metricsService.recordNotification(notification.getChannel(), NotificationStatus.SENT);
+            metricsService.recordNotification(notification.getChannel(), NotificationStatus.SENT);
 
-        LOG.infof("Async processing completed for: %s", notification.getRecipient());
+            LOG.infof("Async processing completed for: %s", notification.getRecipient());
+        } finally {
+            MDC.remove("notificationId");
+        }
     }
 
     /**
@@ -64,20 +70,26 @@ public class NotificationProcessor {
      * Moves the notification to the Redis "Cold Queue" for later retrial.
      */
     public void fallbackToRedis(Notification notification) {
-        LOG.warnf("All immediate retries failed for notification [%s]. Moving to Redis Cold Queue.",
-                notification.getId());
+        MDC.put("notificationId", notification.getId());
 
-        stateService.updateStatus(
-                notification.getId(),
-                NotificationStatus.FAILED,
-                "Immediate retries exhausted. Moved to Redis queue.",
-                null
-        );
+        try {
+            LOG.warnf("All immediate retries failed for notification [%s]. Moving to Redis Cold Queue.",
+                    notification.getId());
 
-        metricsService.recordNotification(notification.getChannel(), NotificationStatus.FAILED);
+            stateService.updateStatus(
+                    notification.getId(),
+                    NotificationStatus.FAILED,
+                    "Immediate retries exhausted. Moved to Redis queue.",
+                    null
+            );
 
-        // Schedule for 5 minutes later (Cold Retry)
-        redisRetryService.scheduleRetry(notification, 300);
+            metricsService.recordNotification(notification.getChannel(), NotificationStatus.FAILED);
+
+            // Schedule for 5 minutes later (Cold Retry)
+            redisRetryService.scheduleRetry(notification, 300);
+        } finally {
+            MDC.remove("notificationId");
+        }
     }
 
     private String processContent(Notification request) {

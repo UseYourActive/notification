@@ -8,6 +8,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 
@@ -16,7 +17,7 @@ public class RedisRetryService {
 
     private static final Logger LOG = Logger.getLogger(RedisRetryService.class);
     private static final String RETRY_KEY = "notifications:retry_queue";
-
+    @Inject Clock clock;
     private final SortedSetCommands<String, Notification> zsetCommands;
 
     @Inject
@@ -25,7 +26,7 @@ public class RedisRetryService {
     }
 
     public void scheduleRetry(Notification notification, long delaySeconds) {
-        long executeAt = Instant.now().getEpochSecond() + delaySeconds;
+        long executeAt = Instant.now(clock).getEpochSecond() + delaySeconds;
 
         zsetCommands.zadd(RETRY_KEY, executeAt, notification);
 
@@ -34,7 +35,7 @@ public class RedisRetryService {
     }
 
     public List<Notification> fetchDueNotifications() {
-        long now = Instant.now().getEpochSecond();
+        long now = Instant.now(clock).getEpochSecond();
 
         // Get everything due up to this exact second
         List<Notification> due = zsetCommands.zrangebyscore(RETRY_KEY, ScoreRange.from(Double.NEGATIVE_INFINITY, now));
