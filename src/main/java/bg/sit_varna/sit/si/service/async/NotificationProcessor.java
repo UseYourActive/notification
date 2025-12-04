@@ -31,7 +31,7 @@ public class NotificationProcessor {
     @Inject NotificationStateService stateService;
 
     @Incoming("notification-queue")
-    @Blocking("notification-workers")
+    @Blocking(value = "notification-workers", ordered = false) // with order false we use the multiple workers
     @Retry // Layer 1: Fast in-memory retry (configured in application.properties)
     @Fallback(fallbackMethod = "fallbackToRedis") // Layer 2: If Layer 1 fails, goes here
     public void processNotification(Notification notification) {

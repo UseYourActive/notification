@@ -16,6 +16,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.ExampleObject;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody; // Added this import
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
@@ -29,41 +30,41 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
  *
  * <p><strong>Core Features:</strong></p>
  * <ul>
- *   <li><strong>Multi-Channel Delivery:</strong> Single unified API for all notification channels</li>
- *   <li><strong>Template-Based Content:</strong> Dynamic content rendering with variable substitution</li>
- *   <li><strong>Internationalization:</strong> Automatic locale resolution from Accept-Language header</li>
- *   <li><strong>Rate Limiting:</strong> Per-channel rate limits to prevent abuse and ensure fair usage</li>
- *   <li><strong>Deduplication:</strong> Prevents duplicate notifications within configurable time windows</li>
- *   <li><strong>Validation:</strong> Comprehensive input validation for recipients, templates, and parameters</li>
+ * <li><strong>Multi-Channel Delivery:</strong> Single unified API for all notification channels</li>
+ * <li><strong>Template-Based Content:</strong> Dynamic content rendering with variable substitution</li>
+ * <li><strong>Internationalization:</strong> Automatic locale resolution from Accept-Language header</li>
+ * <li><strong>Rate Limiting:</strong> Per-channel rate limits to prevent abuse and ensure fair usage</li>
+ * <li><strong>Deduplication:</strong> Prevents duplicate notifications within configurable time windows</li>
+ * <li><strong>Validation:</strong> Comprehensive input validation for recipients, templates, and parameters</li>
  * </ul>
  *
  * <p><strong>Request Processing Flow:</strong></p>
  * <ol>
- *   <li>Request validation (recipient format, template existence, required parameters)</li>
- *   <li>Locale resolution from Accept-Language header with fallback to default</li>
- *   <li>Rate limit check (per recipient and channel)</li>
- *   <li>Deduplication check (prevent duplicate sends within time window)</li>
- *   <li>Template rendering with provided parameters</li>
- *   <li>Channel-specific delivery via appropriate provider (SendGrid, Twilio, Telegram Bot API)</li>
- *   <li>Delivery confirmation and logging</li>
- *   <li>Metrics collection and success/failure tracking</li>
+ * <li>Request validation (recipient format, template existence, required parameters)</li>
+ * <li>Locale resolution from Accept-Language header with fallback to default</li>
+ * <li>Rate limit check (per recipient and channel)</li>
+ * <li>Deduplication check (prevent duplicate sends within time window)</li>
+ * <li>Template rendering with provided parameters</li>
+ * <li>Channel-specific delivery via appropriate provider (SendGrid, Twilio, Telegram Bot API)</li>
+ * <li>Delivery confirmation and logging</li>
+ * <li>Metrics collection and success/failure tracking</li>
  * </ol>
  *
  * <p><strong>Rate Limiting:</strong></p>
  * Default rate limits per recipient (configurable):
  * <ul>
- *   <li>EMAIL: 10 notifications per hour</li>
- *   <li>SMS: 5 notifications per hour</li>
- *   <li>TELEGRAM: 20 notifications per hour</li>
+ * <li>EMAIL: 10 notifications per hour</li>
+ * <li>SMS: 5 notifications per hour</li>
+ * <li>TELEGRAM: 20 notifications per hour</li>
  * </ul>
  *
  * <p><strong>Security Considerations:</strong></p>
  * <ul>
- *   <li>Validate recipient addresses to prevent abuse</li>
- *   <li>Sanitize template parameters to prevent injection attacks</li>
- *   <li>Implement authentication/authorization for production use (not included in base API)</li>
- *   <li>Monitor for spam patterns and unusual activity</li>
- *   <li>Log all notification attempts for audit trails</li>
+ * <li>Validate recipient addresses to prevent abuse</li>
+ * <li>Sanitize template parameters to prevent injection attacks</li>
+ * <li>Implement authentication/authorization for production use (not included in base API)</li>
+ * <li>Monitor for spam patterns and unusual activity</li>
+ * <li>Log all notification attempts for audit trails</li>
  * </ul>
  *
  * @version 1.0
@@ -80,7 +81,6 @@ public interface NotificationApi {
 
     /**
      * POST /api/v1/notifications/send
-     * Send notification synchronously
      * Locale is automatically resolved from Accept-Language header
      */
     @POST
@@ -165,7 +165,6 @@ public interface NotificationApi {
             Examples:
             - Accept-Language: bg
             - Accept-Language: bg, en;q=0.9
-            - Accept-Language: en-US, en;q=0.8
             
             **Fallback Behavior:**
             If the requested locale is not supported or if the template doesn't exist
@@ -175,13 +174,83 @@ public interface NotificationApi {
             When multiple locales are specified, the system selects the highest-priority
             supported locale. Quality values (q=) determine priority.
             """,
-            required = false,
             schema = @Schema(
                     type = SchemaType.STRING,
                     defaultValue = "en",
-                    enumeration = {"en", "bg", "en-US", "bg-BG"}
+                    enumeration = {"en", "bg"}
             ),
             example = "bg"
+    )
+    @RequestBody(
+            description = "Notification request payload with examples for different channels",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON,
+                    schema = @Schema(implementation = SendNotificationRequest.class),
+                    examples = {
+                            @ExampleObject(
+                                    name = "1. Telegram (Daily Update)",
+                                    summary = "Send a Telegram Daily Summary to Alex",
+                                    value = """
+                                        {
+                                          "channel": "TELEGRAM",
+                                          "recipient": "1898155128",
+                                          "templateName": "telegram/daily_reminder",
+                                          "data": {
+                                            "firstName": "Alex",
+                                            "taskCount": "5",
+                                            "messageCount": "1",
+                                            "nextEvent": "Project Demo 🚀"
+                                          }
+                                        }
+                                    """
+                            ),
+                            @ExampleObject(
+                                    name = "2. Telegram (Raw Message)",
+                                    summary = "Send a direct text message without a template",
+                                    value = """
+                                        {
+                                          "channel": "TELEGRAM",
+                                          "recipient": "1898155128",
+                                          "message": "🚨 System Alert: High CPU Usage detected on production server."
+                                        }
+                                    """
+                            ),
+                            @ExampleObject(
+                                    name = "3. Email (Welcome)",
+                                    summary = "Send a Welcome Email (Replace recipient with real email)",
+                                    value = """
+                                        {
+                                          "channel": "EMAIL",
+                                          "recipient": "alexorozov@gmail.com",
+                                          "templateName": "email/welcome",
+                                          "data": {
+                                            "firstName": "Alex",
+                                            "actionUrl": "https://myapp.com/login",
+                                            "supportEmail": "help@myapp.com",
+                                            "appName": "QuarkusNotif",
+                                            "year": "2025"
+                                          }
+                                        }
+                                    """
+                            ),
+                            @ExampleObject(
+                                    name = "4. SMS (OTP)",
+                                    summary = "Send an OTP via SMS",
+                                    value = """
+                                        {
+                                          "channel": "SMS",
+                                          "recipient": "+15005550006",
+                                          "templateName": "sms/verification_code",
+                                          "data": {
+                                            "code": "482910",
+                                            "expiryMinutes": "5",
+                                            "appName": "QuarkusNotif"
+                                          }
+                                        }
+                                    """
+                            )
+                    }
+            )
     )
     @APIResponses(value = {
             @APIResponse(
@@ -334,5 +403,4 @@ public interface NotificationApi {
             )
     })
     Response sendNotification(@Valid SendNotificationRequest request);
-
 }

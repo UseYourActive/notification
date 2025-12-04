@@ -84,11 +84,6 @@ public final class TelegramNotificationStrategy implements ChannelStrategy {
 
             LOG.infof("Telegram notification sent successfully. Chat ID: %s, Message ID: %d", chatId, messageId);
 
-            // Store message ID in notification for potential future operations (edit, delete)
-            if (data != null) {
-                data.put("telegram_message_id", messageId);
-            }
-
         } catch (TelegramSendException e) {
             LOG.errorf("Failed to send Telegram notification to %s: %s", chatId, e.getMessage());
             throw e;
