@@ -1,0 +1,70 @@
+---
+# 1. Redis Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-notification-service # Matches your docker-compose service name
+spec:
+  ports:
+    - port: 6379
+  selector:
+    app: redis
+---
+# 2. Redis Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+---
+# 3. Postgres Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-notification # Matches your docker-compose service name
+spec:
+  ports:
+    - port: 5432
+  selector:
+    app: postgres
+---
+# 4. Postgres Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            # Simple auth for local k8s testing
+            - name: POSTGRES_USER
+              value: "user"
+            - name: POSTGRES_PASSWORD
+              value: "password"
+            - name: POSTGRES_DB
+              value: "notificationdb"
