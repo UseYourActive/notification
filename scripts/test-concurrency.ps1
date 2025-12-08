@@ -17,7 +17,7 @@ $json = '{
 
 Write-Host "🚀 Launching 10 parallel requests to prove concurrency..."
 
-# Launch 10 background jobs simultaneously
+# Launch 20 background jobs simultaneously
 1..20 | ForEach-Object {
     $i = $_
     Start-Job -ScriptBlock {
