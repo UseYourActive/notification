@@ -9,6 +9,7 @@ import bg.sit_varna.sit.si.service.core.NotificationStateService;
 import bg.sit_varna.sit.si.service.redis.MetricsService;
 import bg.sit_varna.sit.si.service.redis.RedisRetryService;
 import bg.sit_varna.sit.si.template.core.TemplateService;
+import io.smallrye.common.annotation.RunOnVirtualThread;
 import io.smallrye.reactive.messaging.annotations.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -32,6 +33,7 @@ public class NotificationProcessor {
 
     @Incoming("notification-queue")
     @Blocking(value = "notification-workers", ordered = false) // with order false we use the multiple workers
+    @RunOnVirtualThread
     @Retry // Layer 1: Fast in-memory retry (configured in application.properties)
     @Fallback(fallbackMethod = "fallbackToRedis") // Layer 2: If Layer 1 fails, goes here
     public void processNotification(Notification notification) {
