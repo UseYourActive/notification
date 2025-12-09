@@ -5,8 +5,6 @@ import bg.sit_varna.sit.si.constant.NotificationChannel;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
-import java.util.Map;
-
 @ApplicationScoped
 public class TemplatePathResolver {
     private final String defaultLocale;

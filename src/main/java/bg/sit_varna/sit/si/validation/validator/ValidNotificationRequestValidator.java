@@ -1,7 +1,7 @@
 package bg.sit_varna.sit.si.validation.validator;
 
 import bg.sit_varna.sit.si.constant.NotificationChannel;
-import bg.sit_varna.sit.si.dto.request.SendNotificationRequest; // Change Import
+import bg.sit_varna.sit.si.dto.request.SendNotificationRequest;
 import bg.sit_varna.sit.si.validation.annotation.ValidNotificationRequest;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
