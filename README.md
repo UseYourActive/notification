@@ -204,7 +204,7 @@ Send Email → SendGrid → Recipient Inbox
 
 | **Live Monitoring (Grafana)** | **Infrastructure (Kubernetes/k9s)** |
 |:---:|:---:|
-| ![Grafana Dashboard](docs/images/grafana-dashboard.png) *Real-time throughput & error rates* | ![K8s Pods](docs/k9s-pods.png) *Full stack running in Docker Desktop* |
+| ![Grafana Dashboard](docs/images/grafana-dashboard.png) *Real-time throughput & error rates* | ![K8s Pods](docs/images/k9s-pods.png) *Full stack running in Docker Desktop* |
 
 | **API Documentation** | **Automated CI/CD** |
 |:---:|:---:|
