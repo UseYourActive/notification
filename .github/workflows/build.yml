@@ -1,0 +1,43 @@
+name: 🚀 Java CI with Maven
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    name: 🧪 Test & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout source
+        uses: actions/checkout@v4
+
+      - name: ☕ Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: 💾 Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      # Make Maven Wrapper executable
+      - name: 🔧 Grant execute permission for mvnw
+        run: chmod +x mvnw
+
+      # Testcontainers will automatically spin up Postgres & Redis in Docker
+      - name: 🧪 Run Tests
+        run: ./mvnw verify
+
+      # 6. Verify packaging (Build the JAR)
+      # We skip tests here because we just ran them in the previous step
+      - name: 📦 Build Package
+        run: ./mvnw package -DskipTests
