@@ -44,7 +44,9 @@ if (Test-Path $ngrokFile) {
     Write-Host "Warning: Ngrok YAML not found at $ngrokFile" -ForegroundColor Yellow
 }
 
+$nodePort = kubectl get service notification-service -o jsonpath='{.spec.ports[0].nodePort}'
+
 Write-Host "[SUCCESS] Deployment Complete!" -ForegroundColor Green
-Write-Host "   - App UI:      http://localhost:<NodePort>/q/swagger-ui"
+Write-Host "   - App UI:      http://localhost:$nodePort/q/swagger-ui"
 Write-Host "   - Ngrok UI:    http://localhost:30040"
 Write-Host "   - Monitor:     Run 'k9s' to see everything"
