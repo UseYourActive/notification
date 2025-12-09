@@ -1,8 +1,34 @@
-# Configuration
-$url = "http://localhost:8080/api/v1/notifications/send"
+# scripts/test-concurrency.ps1
+
+# --- 1. Dynamic Port Detection ---
+$baseUrl = "http://localhost:8080"
+$k8sPort = $null
+
+Write-Host "[INFO] Detecting Environment..." -ForegroundColor Yellow
+
+# Try connecting to Docker port 8080
+try {
+    $tcp = New-Object System.Net.Sockets.TcpClient
+    $connect = $tcp.BeginConnect("localhost", 8080, $null, $null)
+    $success = $connect.AsyncWaitHandle.WaitOne(200, $false)
+    if (-not $success) {
+        # 8080 is closed, check Kubernetes
+        $k8sPort = kubectl get service notification-service -o jsonpath='{.spec.ports[0].nodePort}' 2>$null
+    }
+    $tcp.Close()
+} catch {}
+
+if ($k8sPort) {
+    Write-Host "   [K8S] Kubernetes Detected. Target: NodePort $k8sPort" -ForegroundColor Cyan
+    $baseUrl = "http://localhost:$k8sPort"
+} else {
+    Write-Host "   [DEV] Docker/Localhost Detected. Target: Port 8080" -ForegroundColor Cyan
+}
+
+# --- 2. Configuration ---
+$url = "$baseUrl/api/v1/notifications/send"
 $headers = @{ "Content-Type" = "application/json" }
 
-# The Payload (Replace with your actual Chat ID)
 $json = '{
   "channel": "TELEGRAM",
   "recipient": "1898155128",
@@ -15,21 +41,34 @@ $json = '{
   }
 }'
 
-Write-Host "🚀 Launching 10 parallel requests to prove concurrency..."
+# --- 3. Execution ---
+Write-Host "LAUNCHING 20 parallel requests to: $url" -ForegroundColor Magenta
 
-# Launch 20 background jobs simultaneously
+$jobs = @()
 1..20 | ForEach-Object {
     $i = $_
-    Start-Job -ScriptBlock {
+    $jobs += Start-Job -ScriptBlock {
         param($id, $uri, $head, $body)
         try {
-            # Send the request
             $response = Invoke-RestMethod -Uri $uri -Method Post -Headers $head -Body $body
-            Write-Output "Request $id : Success"
+            return "Request $id : [SUCCESS]"
         } catch {
-            Write-Output "Request $id : Failed ($($_.Exception.Message))"
+            return "Request $id : [FAIL] ($($_.Exception.Message))"
         }
-    } -ArgumentList $i, $url, $headers, $json | Out-Null
+    } -ArgumentList $i, $url, $headers, $json
 }
 
-Write-Host "✅ All 10 jobs started! Check your IntelliJ Console NOW."
+# --- 4. Wait & Report ---
+Write-Host "Waiting for responses..." -ForegroundColor Yellow
+$results = $jobs | Receive-Job -Wait -AutoRemoveJob
+
+# Print results
+$results | ForEach-Object {
+    if ($_ -match "SUCCESS") {
+        Write-Host $_ -ForegroundColor Green
+    } else {
+        Write-Host $_ -ForegroundColor Red
+    }
+}
+
+Write-Host "TEST COMPLETE." -ForegroundColor Cyan
