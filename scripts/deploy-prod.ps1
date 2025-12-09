@@ -9,7 +9,7 @@ Write-Host "[START] Starting PROD deployment (Native Mode)..." -ForegroundColor 
 try {
     # 2. Build Native Image
     Write-Host "[BUILD] Compiling Native Binary (this may take a few minutes)..."
-    ./mvnw clean package -Pnative -DskipTests -Dquarkus.native.container-build=true
+    ./mvnw clean package -Pnative "-DskipTests" "-Dquarkus.native.container-build=true"
 
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Native build failed."

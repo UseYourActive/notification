@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis-notification-service # Matches your docker-compose service name
+  name: redis-notification-service
 spec:
   ports:
     - port: 6379
@@ -34,7 +34,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: postgres-notification # Matches your docker-compose service name
+  name: postgres-notification
 spec:
   ports:
     - port: 5432
@@ -61,10 +61,18 @@ spec:
           ports:
             - containerPort: 5432
           env:
-            # Simple auth for local k8s testing
             - name: POSTGRES_USER
-              value: "user"
+              valueFrom:
+                secretKeyRef:
+                  name: notification-env-secret
+                  key: QUARKUS_DATASOURCE_USERNAME
             - name: POSTGRES_PASSWORD
-              value: "password"
+              valueFrom:
+                secretKeyRef:
+                  name: notification-env-secret
+                  key: QUARKUS_DATASOURCE_PASSWORD
             - name: POSTGRES_DB
-              value: "notificationdb"
+              valueFrom:
+                secretKeyRef:
+                  name: notification-env-secret
+                  key: QUARKUS_DATASOURCE_DB

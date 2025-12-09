@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+spec:
+  template:
+    spec:
+      containers:
+        - name: notification-service
+          envFrom:
+            - secretRef:
+                name: notification-env-secret
+          env:
+            - name: DB_HOST
+              value: "postgres-notification"
+            - name: REDIS_HOST
+              value: "redis://redis-notification-service:6379"
