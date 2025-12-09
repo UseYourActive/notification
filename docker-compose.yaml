@@ -116,6 +116,12 @@ services:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    volumes:
+        - ./config/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+        - ./config/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+        - ./config/grafana/dashboards-json:/var/lib/grafana/dashboards
     networks:
       - notification-network
     depends_on:

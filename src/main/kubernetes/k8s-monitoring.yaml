@@ -1,0 +1,120 @@
+# src/main/kubernetes/k8s-monitoring.yaml
+
+# --- Prometheus ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 5s
+    scrape_configs:
+      - job_name: 'notification-service'
+        metrics_path: '/q/metrics'
+        static_configs:
+          - targets: ['notification-service:8080'] # Internal K8s DNS name
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+        - name: prometheus
+          image: prom/prometheus:latest
+          ports:
+            - containerPort: 9090
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/prometheus/prometheus.yml
+              subPath: prometheus.yml
+      volumes:
+        - name: config-volume
+          configMap:
+            name: prometheus-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+spec:
+  ports:
+    - port: 9090
+      targetPort: 9090
+  selector:
+    app: prometheus
+
+# --- Grafana ---
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: "admin"
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "true"
+            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+              value: "Admin"
+          volumeMounts:
+            # Mount Datasource Config
+            - name: grafana-datasources
+              mountPath: /etc/grafana/provisioning/datasources
+            # Mount Dashboard Provider Config
+            - name: grafana-dashboards-prov
+              mountPath: /etc/grafana/provisioning/dashboards
+            # Mount Dashboard JSONs
+            - name: grafana-dashboards-json
+              mountPath: /var/lib/grafana/dashboards
+      volumes:
+        - name: grafana-datasources
+          configMap:
+            name: grafana-datasources
+        - name: grafana-dashboards-prov
+          configMap:
+            name: grafana-dashboards-prov
+        - name: grafana-dashboards-json
+          configMap:
+            name: grafana-dashboards-json
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+spec:
+  type: NodePort
+  ports:
+    - port: 3000
+      targetPort: 3000
+      nodePort: 30000
+  selector:
+    app: grafana

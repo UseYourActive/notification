@@ -4,26 +4,38 @@
 $projectRoot = Resolve-Path "$PSScriptRoot/.."
 $envFile = Join-Path $projectRoot ".env"
 $infraFile = Join-Path $projectRoot "k8s-infra.yaml"
+$monitorFile = Join-Path $projectRoot "src/main/kubernetes/k8s-monitoring.yaml"
 $ngrokFile = Join-Path $projectRoot "src/main/kubernetes/k8s-ngrok.yaml"
 
 Write-Host "[START] Starting FULL Kubernetes Deployment..." -ForegroundColor Magenta
 
 # 2. Secrets
-Write-Host "[1/5] Refreshing Secrets..."
+Write-Host "[1/6] Refreshing Secrets..."
 kubectl delete secret notification-env-secret --ignore-not-found
-# Point explicitly to the .env file in the project root
 kubectl create secret generic notification-env-secret --from-env-file=$envFile
 
-# 3. Infrastructure
-Write-Host "[2/5] Spinning up Database and Cache..."
-kubectl apply -f $infraFile
+# 3. Monitoring ConfigMaps (The Magic Step) 🪄
+Write-Host "[2/6] Generating Monitoring Configs..."
+# Clean old maps
+kubectl delete configmap grafana-datasources --ignore-not-found
+kubectl delete configmap grafana-dashboards-prov --ignore-not-found
+kubectl delete configmap grafana-dashboards-json --ignore-not-found
 
-# 4. Application
-Write-Host "[3/5] Cleaning old app deployment..."
+# Create new maps from your local files
+kubectl create configmap grafana-datasources --from-file="$projectRoot/config/grafana/provisioning/datasources/"
+kubectl create configmap grafana-dashboards-prov --from-file="$projectRoot/config/grafana/provisioning/dashboards/"
+kubectl create configmap grafana-dashboards-json --from-file="$projectRoot/config/grafana/dashboards-json/"
+
+# 4. Infrastructure
+Write-Host "[3/6] Spinning up Database, Cache, and Monitoring..."
+kubectl apply -f $infraFile
+kubectl apply -f $monitorFile
+
+# 5. Application
+Write-Host "[4/6] Cleaning old app deployment..."
 kubectl delete deployment notification-service --ignore-not-found
 
-Write-Host "[4/5] Building & Deploying Application..."
-# We must run Maven from the project root, not the scripts folder
+Write-Host "[5/6] Building & Deploying Application..."
 Push-Location $projectRoot
 try {
     ./mvnw clean package `
@@ -36,17 +48,16 @@ try {
     Pop-Location
 }
 
-# 5. Tools
-Write-Host "[5/5] Launching Ngrok Tunnel..."
+# 6. Tools
+Write-Host "[6/6] Launching Ngrok Tunnel..."
 if (Test-Path $ngrokFile) {
     kubectl apply -f $ngrokFile
-} else {
-    Write-Host "Warning: Ngrok YAML not found at $ngrokFile" -ForegroundColor Yellow
 }
 
 $nodePort = kubectl get service notification-service -o jsonpath='{.spec.ports[0].nodePort}'
 
 Write-Host "[SUCCESS] Deployment Complete!" -ForegroundColor Green
 Write-Host "   - App UI:      http://localhost:$nodePort/q/swagger-ui"
+Write-Host "   - Grafana:     http://localhost:30000"
 Write-Host "   - Ngrok UI:    http://localhost:30040"
 Write-Host "   - Monitor:     Run 'k9s' to see everything"
