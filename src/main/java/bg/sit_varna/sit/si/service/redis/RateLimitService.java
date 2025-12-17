@@ -36,35 +36,28 @@ public class RateLimitService {
         String key = buildRateLimitKey(recipient, channel);
 
         try {
-            // Get current count
-            Long currentCount = valueCommands.get(key);
+            long currentCount = valueCommands.incr(key);
 
             int maxRequests = getMaxRequests(channel);
             Duration window = getWindow(channel);
 
-            if (currentCount == null) {
-                // First request - initialize counter
-                valueCommands.set(key, 1L);
+            // If this is the very first request (counter became 1), we start the timer.
+            if (currentCount == 1) {
                 keyCommands.expire(key, window);
-                LOG.debugf("Rate limit initialized for %s:%s - 1/%d",
-                        channel, recipient, maxRequests);
-                return true;
+                LOG.debugf("Rate limit initialized for %s:%s", channel, recipient);
             }
 
-            if (currentCount >= maxRequests) {
+            // If the atomic increment pushed us over the limit, we reject.
+            if (currentCount > maxRequests) {
                 LOG.warnf("Rate limit exceeded for %s:%s - %d/%d requests",
                         channel, recipient, currentCount, maxRequests);
                 return false;
             }
 
-            // Increment counter
-            valueCommands.incr(key);
-            LOG.debugf("Rate limit check passed for %s:%s - %d/%d",
-                    channel, recipient, currentCount + 1, maxRequests);
             return true;
 
         } catch (Exception e) {
-            LOG.errorf(e, "Error checking rate limit, allowing request");
+            LOG.errorf(e, "Error checking rate limit, allowing request (Fail Open)");
             return true;
         }
     }

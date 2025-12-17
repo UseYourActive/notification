@@ -10,7 +10,9 @@ import bg.sit_varna.sit.si.service.redis.MetricsService;
 import bg.sit_varna.sit.si.service.redis.RedisRetryService;
 import bg.sit_varna.sit.si.template.core.TemplateService;
 import io.smallrye.common.annotation.RunOnVirtualThread;
+import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.control.ActivateRequestContext;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.faulttolerance.Fallback;
 import org.eclipse.microprofile.faulttolerance.Retry;
@@ -23,6 +25,8 @@ public class NotificationProcessor {
 
     private static final Logger LOG = Logger.getLogger(NotificationProcessor.class);
 
+    private volatile boolean shuttingDown = false;
+
     @Inject ApplicationConfig applicationConfig;
     @Inject RedisRetryService redisRetryService;
     @Inject TemplateService templateService;
@@ -32,12 +36,18 @@ public class NotificationProcessor {
 
     @Incoming("notification-queue")
     @RunOnVirtualThread
+    @ActivateRequestContext
     @Retry // Layer 1: Fast in-memory retry (configured in application.properties)
     @Fallback(fallbackMethod = "fallbackToRedis") // Layer 2: If Layer 1 fails, goes here
     public void processNotification(Notification notification) {
         LOG.infof("Processing async notification [%s] for: %s via %s",
                 notification.getId(), notification.getRecipient(), notification.getChannel());
         MDC.put("notificationId", notification.getId());
+
+        if (shuttingDown) {
+            LOG.warn("App is shutting down. Skipping notification: " + notification.getId());
+            return; // Stop immediately
+        }
 
         try {
             // Render Template
@@ -60,6 +70,12 @@ public class NotificationProcessor {
             metricsService.recordNotification(notification.getChannel(), NotificationStatus.SENT);
 
             LOG.infof("Async processing completed for: %s", notification.getRecipient());
+        } catch (Exception e) {
+            LOG.error("Failed to process notification", e);
+            if (!shuttingDown) {
+                stateService.updateStatus(notification.getId(), NotificationStatus.FAILED, e.getMessage(), null);
+            }
+            throw e;
         } finally {
             MDC.remove("notificationId");
         }
@@ -90,6 +106,11 @@ public class NotificationProcessor {
         } finally {
             MDC.remove("notificationId");
         }
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        this.shuttingDown = true;
     }
 
     private String processContent(Notification request) {
