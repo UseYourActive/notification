@@ -21,7 +21,17 @@ try {
     Write-Host "[DEPLOY] Deploying to Docker Compose..."
     docker-compose up -d --build
 
+    # 4. Output Access URLs
     Write-Host "[SUCCESS] Dev environment is running!" -ForegroundColor Green
+    Write-Host "   - App API:     http://localhost:8080"
+    Write-Host "   - Swagger UI:  http://localhost:8080/q/swagger-ui"
+    Write-Host "   - Grafana:     http://localhost:3000"
+    Write-Host "   - Prometheus:  http://localhost:9090"
+    Write-Host "   - Mailpit:     http://localhost:8025 (Email Sandbox)"
+
+    Write-Host "`n[DEBUG] Actual Container Ports:" -ForegroundColor Cyan
+    docker-compose ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+
 } finally {
     Pop-Location
 }
